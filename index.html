@@ -35,24 +35,26 @@
 
     .player-item {
       display: flex;
-      flex-direction: row;
       align-items: center;
       justify-content: flex-start;
       gap: 12px;
       width: 100%;
-      padding: 6px 0;
+      padding: 8px 0;
+      box-sizing: border-box;
     }
 
     .player-item input[type="checkbox"] {
       margin: 0;
-      flex: 0 0 auto;
-      width: 18px;
-      height: 18px;
+      flex: 0 0 24px;
+      width: 20px;
+      height: 20px;
+      accent-color: #333;
     }
 
     .player-item span {
       flex: 1;
       text-align: left;
+      line-height: 1.2;
     }
 
     .player-item input {
@@ -261,10 +263,10 @@ function afficherJoueurs() {
 
   Object.keys(joueurs).forEach(j => {
     html += `
-      <label class="player-item">
+      <div class="player-item">
         <input type="checkbox" value="${j}" onchange="updateClassementInputs()">
         <span>${j}</span>
-      </label>
+      </div>
     `;
   });
 
