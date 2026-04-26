@@ -1,7 +1,7 @@
 {
   "name": "Classement Jeux",
-  "short_name": "Classement",
-  "start_url": ".",
+  "short_name": "JDS",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
