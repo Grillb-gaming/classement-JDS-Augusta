@@ -4,14 +4,17 @@
 <link rel="manifest" href="manifest.json">
 
 <head>
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Classement Jeux</title>
   <style>
     body {
-      font-family: Arial;
+      max-width: 600px;
+      margin: auto;
       padding: 10px;
-      font-size: 18px;
+      font-size: 16px;
     }
   
     button {
@@ -19,6 +22,7 @@
       font-size: 16px;
       margin-top: 5px;
       width: 100%;
+      border-radius: 8px;
     }
 
     select, input {
@@ -26,6 +30,18 @@
       padding: 8px;
       margin-top: 5px;
       font-size: 16px;
+      border-radius: 6px;
+    }
+
+    .player-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+    }
+
+    .player-item input {
+      transform: scale(1.2);
     }
 
     .section {
@@ -227,9 +243,16 @@ function afficherJeux() {
 
 function afficherJoueurs() {
   let html = "";
+
   Object.keys(joueurs).forEach(j => {
-    html += `<label><input type="checkbox" value="${j}" onchange="updateClassementInputs()">${j}</label><br>`;
+    html += `
+      <label class="player-item">
+        <input type="checkbox" value="${j}" onchange="updateClassementInputs()">
+        <span>${j}</span>
+      </label>
+    `;
   });
+
   document.getElementById("joueursList").innerHTML = html;
 }
 
@@ -556,47 +579,58 @@ function ajouterPartie() {
 ============================ */
 function regressionSessions() {
 
-  // Construire la liste des sessions par joueur, mais seulement après leur date de début
   let sessions = {};
 
+  // 🔹 Construire les sessions par joueur
   historique.forEach(p => {
-    let datePartie = p.date;
+
+    let datePartie = new Date(p.date).getTime();
 
     p.joueurs.forEach(j => {
-      if (!joueurs[j].debut) return; // sécurité
 
-      // Ne compter que les sessions après la date de début du joueur
-      if (datePartie >= joueurs[j].debut) {
+      if (!joueurs[j] || !joueurs[j].debut) return;
+
+      let debut = new Date(joueurs[j].debut).getTime();
+
+      if (datePartie >= debut) {
+
         if (!sessions[j]) sessions[j] = new Set();
+
         sessions[j].add(datePartie);
       }
     });
   });
 
-  // Pour chaque joueur, calculer la moyenne des sessions des joueurs actifs depuis sa date de début
+  // 🔹 Analyse + régression
   Object.keys(joueurs).forEach(joueur => {
 
     let debut = joueurs[joueur].debut;
     if (!debut) return;
 
-    // Trouver les joueurs comparables (ayant joué après cette date)
-    let comparables = Object.keys(joueurs).filter(j => {
-      return sessions[j] && [...sessions[j]].some(d => d >= debut);
-    });
+    let debutDate = new Date(debut).getTime();
 
-    if (comparables.length === 0) return;
+    let counts = Object.keys(joueurs)
+      .filter(j => sessions[j])
+      .map(j => {
+        return [...sessions[j]].filter(t => t >= debutDate).length;
+      })
+      .filter(n => n > 0);
 
-    // Moyenne des sessions dans cette période
-    let counts = comparables.map(j => sessions[j].size);
-    let moyenne = counts.reduce((a,b)=>a+b,0) / counts.length;
+    if (counts.length === 0) return;
 
-    let nb = sessions[joueur] ? sessions[joueur].size : 0;
+    let moyenne = counts.reduce((a, b) => a + b, 0) / counts.length;
+
+    let nb = sessions[joueur]
+      ? [...sessions[joueur]].filter(t => t >= debutDate).length
+      : 0;
+
     let ratio = nb / moyenne;
 
-    // Régression vers 500
+    // 🔹 Régression vers 500
     if (ratio < 0.5) {
       joueurs[joueur].score += (500 - joueurs[joueur].score) * REGRESSION_RATE;
     }
+
     if (ratio > 1.5 && joueurs[joueur].score < 500) {
       joueurs[joueur].score += (500 - joueurs[joueur].score) * REGRESSION_RATE;
     }
@@ -664,7 +698,9 @@ function calculElo(partie, modeReel, data) {
         ));
       }
     });
-    expected /= (partie.length - 1);
+    if (partie.length > 1) {
+      expected /= (partie.length - 1);
+    }
 
     // Variation Elo
     let delta = K * M * difficultyFactor * (score - expected);
