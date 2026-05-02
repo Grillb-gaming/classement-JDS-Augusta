@@ -434,7 +434,7 @@ function modifierJeu(nom) {
     mode: m,
     victoire: d.victoire || "classement",
     variable: d.variable || "non",
-    modeEquipe: d.modeEquipe || "non"
+    modeEquipe: prompt("Mode équipe (oui/non/variable) :", d.modeEquipe || "non")
   };
   localStorage.setItem("jeux", JSON.stringify(jeux));
   afficherJeux(); afficherGestionJeux();
@@ -625,9 +625,9 @@ function ajouterPartie() {
   let teamCount = parseInt(document.getElementById("teamCount").value) || 2;
   
   if (teamMode === "oui") {
-  // Construire les équipes
-  let equipes = {};
-  selected.forEach(j => {
+    // Construire les équipes
+    let equipes = {};
+    selected.forEach(j => {
     let t = parseInt(document.getElementById("team_" + j).value);
     if (!equipes[t]) equipes[t] = [];
     equipes[t].push(j);
@@ -650,7 +650,7 @@ function ajouterPartie() {
       });
     });
   });
-}
+  }
 
   if (teamMode !== "oui") {
 
