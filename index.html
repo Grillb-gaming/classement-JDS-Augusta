@@ -26,8 +26,15 @@
       border-radius: 8px;
     }
 
-    select, input {
+    input {
       width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      font-size: 16px;
+      border-radius: 6px;
+    }
+
+    select {
       padding: 8px;
       margin-top: 5px;
       font-size: 16px;
@@ -63,7 +70,7 @@
     }
 
     .teamSelect {
-      width: auto !important;
+      width: auto;
       min-width: 60px;
     }
 
@@ -1019,10 +1026,10 @@ window.onload = function() {
       }
     } catch(e) {}
   }
-  onModeChangeNewGame();
-  afficherClassement();
   afficherJeux();
   afficherJoueurs();
+  onModeChangeNewGame();
+  afficherClassement();
   afficherHistorique();
   afficherGestionJeux();
   afficherGestionJoueurs();
