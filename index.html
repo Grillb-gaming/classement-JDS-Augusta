@@ -62,6 +62,15 @@
       transform: scale(1.2);
     }
 
+    .teamSelect {
+      width: auto !important;
+      min-width: 60px;
+    }
+
+    .player-item select.teamSelect {
+      flex: 0 0 auto;
+    }
+
     .section {
      margin-top: 20px;
     }
@@ -282,6 +291,10 @@ function afficherJeux() {
     o.textContent = j;
     select.appendChild(o);
   });
+
+  if (Object.keys(jeux).length > 0) {
+    onJeuChange();
+  }
 }
 
 function afficherJoueurs() {
