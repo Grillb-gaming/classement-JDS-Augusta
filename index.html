@@ -513,7 +513,6 @@ function updateClassementInputs() {
   let jeu = document.getElementById("jeu").value;
   let data = jeux[jeu];
 
-  // Si aucun jeu sélectionné
   if (!data) {
     document.getElementById("coopDifficultyContainer").style.display = "none";
     document.getElementById("classementInputs").innerHTML = "";
@@ -522,22 +521,25 @@ function updateClassementInputs() {
 
   // Déterminer si on joue en équipe
   let teamMode = (data.modeEquipe === "variable")
-  ? document.getElementById("teamModeSelect").value
-  : data.modeEquipe;
-  
+    ? document.getElementById("teamModeSelect").value
+    : data.modeEquipe;
+
   let teamCount = parseInt(document.getElementById("teamCount").value) || 2;
-  
-  // Afficher / remplir les selects d’équipe
-  
+
+  // 🔥 Correction : ne reconstruire les selects d’équipe QUE si nécessaire
   document.querySelectorAll(".teamSelect").forEach(sel => {
     sel.style.display = (teamMode === "oui") ? "inline-block" : "none";
-    sel.innerHTML = "";
-    for (let i = 1; i <= teamCount; i++) {
-      sel.innerHTML += `<option value="${i}">${i}</option>`;
+
+    // Si le nombre d’options ne correspond pas, on reconstruit
+    if (sel.options.length !== teamCount) {
+      sel.innerHTML = "";
+      for (let i = 1; i <= teamCount; i++) {
+        sel.innerHTML += `<option value="${i}">${i}</option>`;
+      }
     }
   });
 
-  // Si on joue en équipe, on génère un classement par équipe
+  // Si on joue en équipe → classement par équipe
   if (teamMode === "oui") {
     let html = "<label>Classement des équipes :</label><br>";
     for (let i = 1; i <= teamCount; i++) {
@@ -556,12 +558,10 @@ function updateClassementInputs() {
   let type;
 
   if (modeReel === "coop") {
-    type = "binaire"; // toujours
-  }
-  else if (modeReel === "competitif") {
-    type = data.victoire; // lu dans le jeu
-  }
-  else if (modeReel === "mixte") {
+    type = "binaire";
+  } else if (modeReel === "competitif") {
+    type = data.victoire;
+  } else if (modeReel === "mixte") {
     let selectedMode = document.getElementById("mode").value;
     type = (selectedMode === "coop") ? "binaire" : data.victoire;
   }
