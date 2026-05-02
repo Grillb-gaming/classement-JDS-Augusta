@@ -105,6 +105,24 @@
   </select>
 </div>
 
+<!-- MODE ÉQUIPE -->
+<div id="teamModeContainer" style="margin-top:10px; display:none;">
+  <label>Jouer en équipe :</label>
+  <select id="teamModeSelect" onchange="updateClassementInputs()">
+    <option value="non">Non</option>
+    <option value="oui">Oui</option>
+  </select>
+</div>
+
+<div id="teamCountContainer" style="margin-top:10px; display:none;">
+  <label>Nombre d’équipes :</label>
+  <select id="teamCount" onchange="updateClassementInputs()">
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+  </select>
+</div>
+
 <!-- DIFFICULTÉ COOP -->
 <div id="coopDifficultyContainer" style="display:none; margin-top:10px;">
   <label>Difficulté :</label>
@@ -205,6 +223,13 @@
     <option value="oui">Oui</option>
   </select><br><br>
 
+  <label>Mode équipe :</label>
+  <select id="newGameTeamMode">
+    <option value="non">Jamais en équipe</option>
+    <option value="oui">Toujours en équipe</option>
+    <option value="variable">Variable</option>
+  </select><br><br>
+
   <button onclick="ajouterJeu()">Ajouter jeu</button>
 </div>
 
@@ -264,11 +289,13 @@ function afficherJoueurs() {
 
   Object.keys(joueurs).forEach(j => {
     html += `
-      <div class="player-item">
-        <input type="checkbox" value="${j}" onchange="updateClassementInputs()">
-        <span>${j}</span>
-      </div>
-    `;
+    <div class="player-item">
+      <input type="checkbox" value="${j}" onchange="updateClassementInputs()">
+      <span>${j}</span>
+      <select id="team_${j}" class="teamSelect" style="display:none;" onchange="updateClassementInputs()">
+        </select>
+        </div>
+        `;
   });
 
   document.getElementById("joueursList").innerHTML = html;
@@ -306,10 +333,10 @@ function afficherGestionJoueurs() {
 function afficherGestionJeux() {
   let html = "<ul>";
   Object.entries(jeux).forEach(([nom,data])=>{
-    html += `<li><b>${nom}</b> (C:${data.complexite}, D:${data.duree}, M:${data.mode})
+    html += `<li><b>${nom}</b> (C:${data.complexite}, D:${data.duree}, M:${data.mode}, Eq:${data.modeEquipe || "non"})
       <button onclick="modifierJeu('${nom}')">Modifier</button>
       <button onclick="supprimerJeu('${nom}')">Supprimer</button>
-    </li>`;
+      </li>`;
   });
   html += "</ul>";
   document.getElementById("gestionJeux").innerHTML = html;
@@ -324,6 +351,7 @@ function ajouterJeu() {
 
   let mode = newGameMode.value;
 
+
   // Coop → type de victoire toujours binaire
   let victoireType = (mode === "coop")
     ? "binaire"
@@ -334,7 +362,8 @@ function ajouterJeu() {
     duree: parseFloat(newGameDuration.value),
     mode: mode,
     victoire: victoireType,            // type de victoire compétitif
-    variable: newGameVariableDuration.value // durée variable oui/non
+    variable: newGameVariableDuration.value, // durée variable oui/non
+    modeEquipe: document.getElementById("newGameTeamMode").value
   };
 
   localStorage.setItem("jeux", JSON.stringify(jeux));
@@ -404,7 +433,8 @@ function modifierJeu(nom) {
     duree: du,
     mode: m,
     victoire: d.victoire || "classement",
-    variable: d.variable || "non"
+    variable: d.variable || "non",
+    modeEquipe: d.modeEquipe || "non"
   };
   localStorage.setItem("jeux", JSON.stringify(jeux));
   afficherJeux(); afficherGestionJeux();
@@ -424,6 +454,24 @@ function onJeuChange() {
     document.getElementById("classementInputs").innerHTML = "";
     return;
   }
+
+  let teamModeContainer = document.getElementById("teamModeContainer");
+  let teamCountContainer = document.getElementById("teamCountContainer");
+  
+  // Gestion du mode équipe selon le jeu
+  if (data.modeEquipe === "oui") {
+    teamModeContainer.style.display = "none";
+    teamCountContainer.style.display = "block";
+    document.getElementById("teamModeSelect").value = "oui";
+  } else if (data.modeEquipe === "non") {
+    teamModeContainer.style.display = "none";
+    teamCountContainer.style.display = "none";
+    document.getElementById("teamModeSelect").value = "non";
+  } else { // "variable"
+  teamModeContainer.style.display = "block";
+  teamCountContainer.style.display = "none"; // 
+  }
+
 
   let modeContainer = document.getElementById("modeContainer");
   let modeSelect = document.getElementById("mode");
@@ -449,6 +497,33 @@ function updateClassementInputs() {
   if (!data) {
     document.getElementById("coopDifficultyContainer").style.display = "none";
     document.getElementById("classementInputs").innerHTML = "";
+    return;
+  }
+
+  // Déterminer si on joue en équipe
+  let teamMode = (data.modeEquipe === "variable")
+  ? document.getElementById("teamModeSelect").value
+  : data.modeEquipe;
+  
+  let teamCount = parseInt(document.getElementById("teamCount").value) || 2;
+  
+  // Afficher / remplir les selects d’équipe
+  
+  document.querySelectorAll(".teamSelect").forEach(sel => {
+    sel.style.display = (teamMode === "oui") ? "inline-block" : "none";
+    sel.innerHTML = "";
+    for (let i = 1; i <= teamCount; i++) {
+      sel.innerHTML += `<option value="${i}">${i}</option>`;
+    }
+  });
+
+  // Si on joue en équipe, on génère un classement par équipe
+  if (teamMode === "oui") {
+    let html = "<label>Classement des équipes :</label><br>";
+    for (let i = 1; i <= teamCount; i++) {
+      html += `Équipe ${i} : <select id="teamPos_${i}">${genererOptions(teamCount)}</select><br>`;
+    }
+    document.getElementById("classementInputs").innerHTML = html;
     return;
   }
 
@@ -542,27 +617,65 @@ function ajouterPartie() {
 
   let parsed = [];
 
-  // Coop → victoire/défaite
-  if (modeReel === "coop") {
-    let r = parseInt(document.getElementById("resultat_coop").value);
-    selected.forEach(j => parsed.push({ nom:j, scoreFixe:r }));
+  // Déterminer si on joue en équipe
+  let teamMode = (data.modeEquipe === "variable")
+  ? document.getElementById("teamModeSelect").value
+  : data.modeEquipe;
+  
+  let teamCount = parseInt(document.getElementById("teamCount").value) || 2;
+  
+  if (teamMode === "oui") {
+  // Construire les équipes
+  let equipes = {};
+  selected.forEach(j => {
+    let t = parseInt(document.getElementById("team_" + j).value);
+    if (!equipes[t]) equipes[t] = [];
+    equipes[t].push(j);
+  });
+
+  // Récupérer les positions d’équipe
+  let positions = {};
+  for (let i = 1; i <= teamCount; i++) {
+    positions[i] = parseInt(document.getElementById("teamPos_" + i).value);
   }
 
-  // Binaire → gagnant/perdants
-  else if (type === "binaire") {
-    let g = document.querySelector('input[name="gagnant"]:checked')?.value;
-    if (type === "binaire" && !g) {
-      alert("Choisis un gagnant");
-      return;
-    }
-    selected.forEach(j => parsed.push({ nom:j, scoreFixe:(j===g?1:0) }));
-  }
-
-  // Classement → positions
-  else if (type === "classement") {
-    selected.forEach(j=>{
-      parsed.push({ nom:j, position:parseInt(document.getElementById("pos_"+j).value) });
+  // Construire parsed : chaque joueur hérite de la position de son équipe
+  parsed = [];
+  Object.entries(equipes).forEach(([team, joueursTeam]) => {
+    joueursTeam.forEach(j => {
+      parsed.push({
+        nom: j,
+        equipe: parseInt(team),
+        position: positions[team]
+      });
     });
+  });
+}
+
+  if (teamMode !== "oui") {
+
+    // Coop → victoire/défaite
+    if (modeReel === "coop") {
+      let r = parseInt(document.getElementById("resultat_coop").value);
+      selected.forEach(j => parsed.push({ nom:j, scoreFixe:r }));
+    }
+
+    // Binaire → gagnant/perdants
+    else if (type === "binaire") {
+     let g = document.querySelector('input[name="gagnant"]:checked')?.value;
+      if (type === "binaire" && !g) {
+       alert("Choisis un gagnant");
+        return;
+      }
+      selected.forEach(j => parsed.push({ nom:j, scoreFixe:(j===g?1:0) }));
+    }
+
+    // Classement → positions
+    else if (type === "classement") {
+     selected.forEach(j=>{
+        parsed.push({ nom:j, position:parseInt(document.getElementById("pos_"+j).value) });
+      });
+    }
   }
 
   // Enregistrer la date de début pour les nouveaux joueurs
@@ -577,7 +690,7 @@ function ajouterPartie() {
   historique.push({
     id: Date.now(),
     date: new Date().toISOString().split("T")[0],
-    joueurs: selected,
+    joueurs: parsed.map(p => p.nom),
     jeu: jeu,
     mode: modeReel,
     resultat: parsed
@@ -670,6 +783,72 @@ function calculElo(partie, modeReel, data) {
     : 1;
 
   let N = partie.length;
+
+  // Vérifier si on est en mode équipe (présence de p.equipe)
+  let isTeam = partie.some(p => p.equipe !== undefined);
+  
+  if (isTeam) {
+
+  // Construire les équipes
+  let equipes = {};
+  partie.forEach(p => {
+    if (!equipes[p.equipe]) equipes[p.equipe] = [];
+    equipes[p.equipe].push(p.nom);
+  });
+
+  // Calcul rating moyen par équipe
+  let ratingEquipe = {};
+  Object.entries(equipes).forEach(([team, joueursTeam]) => {
+    let sum = joueursTeam.reduce((a, j) => a + joueurs[j].score, 0);
+    ratingEquipe[team] = sum / joueursTeam.length;
+  });
+
+  // Expected par équipe
+  let expectedEquipe = {};
+  let teams = Object.keys(equipes);
+
+  teams.forEach(t1 => {
+    let exp = 0;
+    teams.forEach(t2 => {
+      if (t1 !== t2) {
+        exp += 1 / (1 + Math.pow(10, (ratingEquipe[t2] - ratingEquipe[t1]) / 400));
+      }
+    });
+    if (teams.length > 1) {
+      exp /= (teams.length - 1);
+    }
+    expectedEquipe[t1] = exp;
+  });
+
+  // Score réel par équipe (en fonction de la position d’équipe)
+  let scoreEquipe = {};
+  teams.forEach(t => {
+    let pos = partie.find(p => p.equipe == t).position;
+    scoreEquipe[t] = (teams.length - pos) / (teams.length - 1);
+  });
+
+  // Multiplicateur M (comme avant)
+  let C = 1 + (data.complexite - 2.5) * 0.3;
+  let J = 1 + (N - 2) * 0.1;
+  let dureeEffective = data.duree;
+  if (data.variable === "oui") {
+    dureeEffective = data.duree * N;
+  }
+  let D = (dureeEffective < 30)
+    ? 0.9
+    : (dureeEffective <= 90 ? 1.0 : 1.15);
+  let M = Math.max(0.6, Math.min(2.0, C * J * D));
+
+  // Appliquer variation à chaque joueur
+  partie.forEach(p => {
+    let delta = K * M * difficultyFactor * (scoreEquipe[p.equipe] - expectedEquipe[p.equipe]);
+    delta = Math.max(-50, Math.min(50, delta));
+    joueurs[p.nom].score += delta;
+  });
+
+  localStorage.setItem("joueurs", JSON.stringify(joueurs));
+  return; // on sort, on ne fait pas le reste
+  }
 
   // Complexité du jeu
   let C = 1 + (data.complexite - 2.5) * 0.3;
