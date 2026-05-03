@@ -467,32 +467,30 @@ function onJeuChange() {
   let jeu = document.getElementById("jeu").value;
   let data = jeux[jeu];
 
-  // Si aucun jeu ou jeu introuvable, on ne fait rien
-  if (!data) {
-    document.getElementById("modeContainer").style.display = "none";
-    document.getElementById("coopDifficultyContainer").style.display = "none";
-    document.getElementById("classementInputs").innerHTML = "";
-    return;
-  }
+  if (!data) return;
+
+  // 🔥 Rétro-compatibilité : anciens jeux sans modeEquipe
+  if (!data.modeEquipe) data.modeEquipe = "non";
 
   let teamModeContainer = document.getElementById("teamModeContainer");
   let teamCountContainer = document.getElementById("teamCountContainer");
-  
-  // Gestion du mode équipe selon le jeu
+
   if (data.modeEquipe === "oui") {
     teamModeContainer.style.display = "none";
     teamCountContainer.style.display = "block";
     document.getElementById("teamModeSelect").value = "oui";
-  } else if (data.modeEquipe === "non") {
+  }
+  else if (data.modeEquipe === "non") {
     teamModeContainer.style.display = "none";
     teamCountContainer.style.display = "none";
     document.getElementById("teamModeSelect").value = "non";
-  } else { // "variable"
-  teamModeContainer.style.display = "block";
-  teamCountContainer.style.display = "none"; // 
+  }
+  else { // variable
+    teamModeContainer.style.display = "block";
+    teamCountContainer.style.display = "none";
   }
 
-
+  // Mode mixte
   let modeContainer = document.getElementById("modeContainer");
   let modeSelect = document.getElementById("mode");
 
