@@ -33,6 +33,12 @@
       font-size: 16px;
       border-radius: 6px;
     }
+    
+    /* Radios et cases à cocher ne doivent PAS être élargis */
+    input[type="radio"],
+    input[type="checkbox"] {
+      width: auto;
+    }
 
     select {
       padding: 8px;
@@ -84,10 +90,25 @@
       margin-right: 6px;
     }
 
-    label {
+    .classement-radio {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .classement-radio label {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
+    }
+    
+    .classement-radio input[type="radio"] {
+      transform: scale(1.3);
+      margin: 0;
+    }
+    
+    .classement-radio span {
+      text-align: left;
     }
 
     .section {
@@ -518,7 +539,7 @@ function onJeuChange() {
 
 function updateClassementInputs() {
 
-  let selected = Array.from(document.querySelectorAll('#joueursList input:checked')).map(el=>el.value);
+  let selected = Array.from(document.querySelectorAll('#joueursList input:checked')).map(el => el.value);
 
   let jeu = document.getElementById("jeu").value;
   let data = jeux[jeu];
@@ -536,11 +557,10 @@ function updateClassementInputs() {
 
   let teamCount = parseInt(document.getElementById("teamCount").value) || 2;
 
-  // 🔥 Correction : ne reconstruire les selects d’équipe QUE si nécessaire
+  // Mise à jour des selects d’équipe
   document.querySelectorAll(".teamSelect").forEach(sel => {
     sel.style.display = (teamMode === "oui") ? "inline-block" : "none";
 
-    // Si le nombre d’options ne correspond pas, on reconstruit
     if (sel.options.length !== teamCount) {
       sel.innerHTML = "";
       for (let i = 1; i <= teamCount; i++) {
@@ -549,15 +569,30 @@ function updateClassementInputs() {
     }
   });
 
-  // Si on joue en équipe → classement par équipe
+  // ============================
+  // MODE ÉQUIPE
+  // ============================
   if (teamMode === "oui") {
-    let html = "<label>Classement des équipes :</label><br>";
+    let html = `<label>Classement des équipes :</label><br>`;
+
+    html += `<div class="classement-radio">`;
     for (let i = 1; i <= teamCount; i++) {
-      html += `Équipe ${i} : <select id="teamPos_${i}">${genererOptions(teamCount)}</select><br>`;
+      html += `
+        <label>
+          <input type="radio" name="gagnantEquipe" value="${i}">
+          <span>Équipe ${i}</span>
+        </label>
+      `;
     }
+    html += `</div>`;
+
     document.getElementById("classementInputs").innerHTML = html;
     return;
   }
+
+  // ============================
+  // MODE NORMAL (pas en équipe)
+  // ============================
 
   // Déterminer le mode réel
   let modeReel = (data.mode === "mixte")
@@ -566,12 +601,11 @@ function updateClassementInputs() {
 
   // Déterminer le type de victoire
   let type;
-
   if (modeReel === "coop") {
     type = "binaire";
   } else if (modeReel === "competitif") {
     type = data.victoire;
-  } else if (modeReel === "mixte") {
+  } else {
     let selectedMode = document.getElementById("mode").value;
     type = (selectedMode === "coop") ? "binaire" : data.victoire;
   }
@@ -580,11 +614,12 @@ function updateClassementInputs() {
   let coopDiv = document.getElementById("coopDifficultyContainer");
   coopDiv.style.display = (modeReel === "coop") ? "block" : "none";
 
-  // Génération des inputs
   let html = "";
 
+  // ============================
+  // COOP
+  // ============================
   if (modeReel === "coop") {
-
     html = `
       <label>Résultat :</label>
       <select id="resultat_coop">
@@ -592,20 +627,33 @@ function updateClassementInputs() {
         <option value="0">Défaite</option>
       </select>
     `;
+  }
 
-  } else if (type === "binaire") {
+  // ============================
+  // BINAIRE (gagnant)
+  // ============================
+  else if (type === "binaire") {
+    html = `<label>Gagnant :</label>`;
 
-    html = `<label>Gagnant :</label><br>`;
+    html += `<div class="classement-radio">`;
     selected.forEach(j => {
-      html += `<label><input type="radio" name="gagnant" value="${j}">${j}</label><br>`;
+      html += `
+        <label>
+          <input type="radio" name="gagnant" value="${j}">
+          <span>${j}</span>
+        </label>
+      `;
     });
+    html += `</div>`;
+  }
 
-  } else if (type === "classement") {
-
+  // ============================
+  // CLASSEMENT
+  // ============================
+  else if (type === "classement") {
     selected.forEach(j => {
       html += `${j} : <select id="pos_${j}">${genererOptions(selected.length)}</select><br>`;
     });
-
   }
 
   document.getElementById("classementInputs").innerHTML = html;
