@@ -533,7 +533,7 @@ function onJeuChange() {
     modeContainer.style.display = "none";
     modeSelect.value = data.mode;
   }
-
+  document.getElementById("coopDifficultyContainer").style.display = "none";
   updateClassementInputs();
 }
 
@@ -711,24 +711,28 @@ function ajouterPartie() {
     equipes[t].push(j);
   });
 
-  // Récupérer les positions d’équipe
-  let positions = {};
-  for (let i = 1; i <= teamCount; i++) {
-    positions[i] = parseInt(document.getElementById("teamPos_" + i).value);
+  let gagnantEquipe =
+    document.querySelector('input[name="gagnantEquipe"]:checked')?.value;
+
+  if (!gagnantEquipe) {
+    alert("Choisis l'équipe gagnante");
+    return;
   }
 
-  // Construire parsed : chaque joueur hérite de la position de son équipe
   parsed = [];
+
   Object.entries(equipes).forEach(([team, joueursTeam]) => {
+
+    let scoreEquipe = (team == gagnantEquipe) ? 1 : 0;
+
     joueursTeam.forEach(j => {
       parsed.push({
         nom: j,
         equipe: parseInt(team),
-        position: positions[team]
+        scoreFixe: scoreEquipe
       });
     });
   });
-  }
 
   if (teamMode !== "oui") {
 
@@ -901,8 +905,8 @@ function calculElo(partie, modeReel, data) {
   // Score réel par équipe (en fonction de la position d’équipe)
   let scoreEquipe = {};
   teams.forEach(t => {
-    let pos = partie.find(p => p.equipe == t).position;
-    scoreEquipe[t] = (teams.length - pos) / (teams.length - 1);
+  scoreEquipe[t] =
+    partie.find(p => p.equipe == t).scoreFixe;
   });
 
   // Multiplicateur M (comme avant)
@@ -1061,9 +1065,14 @@ function importerDonnees() {
 }
 
 function reset() {
+
+  if (!confirm("Supprimer toutes les données ?")) return;
+
   localStorage.removeItem("joueurs");
   localStorage.removeItem("jeux");
   localStorage.removeItem("historique");
+  localStorage.removeItem("backup_auto");
+
   location.reload();
 }
 
