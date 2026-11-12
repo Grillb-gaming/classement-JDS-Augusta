@@ -1,1050 +1,1839 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 
 <head>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="theme-color" content="#ffffff">
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#6d28d9">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Classement Jeux">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <title>Classement Jeux</title>
   <style>
+    :root {
+      --violet: #6d28d9;
+      --bord: #e4e4e7;
+      --texte: #18181b;
+      --muted: #71717a;
+      --fond: #fafafa;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
       max-width: 600px;
-      margin: auto;
+      margin: 0 auto;
+      padding: 16px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+      color: var(--texte);
+      background: var(--fond);
+    }
+
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    .sous-titre { font-size: 13px; color: var(--muted); margin: 0 0 16px; }
+    h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+      margin: 18px 0 8px;
+    }
+
+    .carte {
+      background: #fff;
+      border: 1px solid var(--bord);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    label, .etiquette {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      margin: 10px 0 4px;
+    }
+
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
       padding: 10px;
       font-size: 16px;
-    }
-  
-    button {
-     padding: 10px;
-      font-size: 16px;
-      margin-top: 5px;
-      width: 100%;
+      font-family: inherit;
+      border: 1px solid var(--bord);
       border-radius: 8px;
+      background: #fff;
+      color: var(--texte);
     }
 
-    input {
+    select:focus, input:focus { outline: 2px solid rgba(109, 40, 217, .25); border-color: var(--violet); }
+
+    button {
       width: 100%;
-      padding: 8px;
-      margin-top: 5px;
+      padding: 12px;
+      margin-top: 8px;
       font-size: 16px;
-      border-radius: 6px;
+      font-family: inherit;
+      border: 1px solid var(--bord);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--texte);
+      cursor: pointer;
     }
 
-    select {
-      padding: 8px;
-      margin-top: 5px;
-      font-size: 16px;
-      border-radius: 6px;
+    button.principal {
+      background: var(--violet);
+      border-color: var(--violet);
+      color: #fff;
+      font-weight: 600;
     }
+
+    button.danger { color: #b91c1c; }
+    button:disabled { opacity: .5; }
+
+    button.toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0;
+      padding: 4px 0;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .fleche { color: var(--muted); transition: transform .15s ease; transform: rotate(-90deg); }
+    .ouvert .fleche { transform: rotate(0deg); }
 
     .player-item {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      gap: 12px;
-      width: 100%;
+      gap: 10px;
       padding: 8px 0;
-      box-sizing: border-box;
+      border-bottom: 1px solid #f4f4f5;
     }
 
+    .player-item:last-child { border-bottom: none; }
+
     .player-item input[type="checkbox"] {
-      margin: 0;
-      flex: 0 0 24px;
       width: 20px;
       height: 20px;
-      accent-color: #333;
+      margin: 0;
+      flex: 0 0 auto;
+      accent-color: var(--violet);
     }
 
-    .player-item span {
-      flex: 0 1 auto;
-      text-align: left;
-      line-height: 1.2;
-    }
-
-    .player-item input[type="checkbox"] {
-      transform: scale(1.2);
-    }
+    .player-name { flex: 1; cursor: pointer; }
 
     .teamSelect {
-      position: relative;
-      z-index: 10;
-    }
-
-    .player-item select.teamSelect {
+      width: auto;
       flex: 0 0 auto;
+      padding: 6px 8px;
+      font-size: 14px;
     }
 
-    input[type="radio"] {
-      vertical-align: middle;
-      transform: scale(1.2);
-      margin-right: 6px;
-    }
-
-    label {
+    .ligne {
       display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid #f4f4f5;
     }
 
-    .section {
-     margin-top: 20px;
-    }
+    .ligne:last-child { border-bottom: none; }
+    .ligne select { width: auto; min-width: 76px; }
+    .ligne .rang-nom { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    .toggle-btn {
-     background:#ddd;
-      padding:10px;
-      border:none;
-      cursor:pointer;
-      width:100%;
-      text-align:left;
-      font-size:16px;
-    }
+    .radio { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 16px; font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--texte); }
+    .radio input { width: 20px; height: 20px; accent-color: var(--violet); }
 
-    .hidden {
-      display:none;
-    }
+    .petits-boutons { display: flex; gap: 6px; flex: 0 0 auto; }
+    .petits-boutons button { width: auto; margin: 0; padding: 6px 10px; font-size: 13px; border-radius: 8px; }
 
-    .subsection {
-      margin-left: 10px;
-      margin-top: 10px;
+    .meta { font-size: 12px; color: var(--muted); }
+    .vide { font-size: 14px; color: var(--muted); margin: 8px 0; }
+    .statut { min-height: 20px; margin: 8px 0 0; font-size: 14px; font-weight: 600; color: #15803d; }
+
+    .rang { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f4f4f5; }
+    .rang:last-child { border-bottom: none; }
+    .rang-nom { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pastille {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #f4f4f5;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
     }
+    .pastille.premier { background: var(--violet); color: #fff; }
+    .score { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .partie { padding: 8px 0; border-bottom: 1px solid #f4f4f5; }
+    .partie:last-child { border-bottom: none; }
+    .partie p { margin: 2px 0 0; }
+
+    .champ-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 380px) { .champ-duo { grid-template-columns: 1fr; } }
+
+    .hidden { display: none !important; }
   </style>
-</head>
+<script>if (window.self !== window.top) window.parent.postMessage({ type: 'SANDBOX_DOCUMENT_START' }, '*');</script><script>
+    (function() {
+        var buffer = window.__base44_preview_native_failures;
+        if (!buffer || buffer.version !== 1 || !Array.isArray(buffer.entries)) {
+            buffer = { version: 1, entries: [], listenersInstalled: false };
+            window.__base44_preview_native_failures = buffer;
+        }
+        if (buffer.listenersInstalled) return;
+        function value(object, key) {
+            return object && typeof object[key] === 'string' ? object[key] : '';
+        }
+        function append(message) {
+            if (!message) return;
+            var normalizedMessage = String(message).slice(0, 5000);
+            for (var index = buffer.entries.length - 1; index >= 0; index--) {
+                var existing = buffer.entries[index];
+                if (existing && existing.level === 'error' && existing.message === normalizedMessage) {
+                    buffer.entries.splice(index, 1);
+                }
+            }
+            buffer.entries.push({
+                level: 'error',
+                message: normalizedMessage,
+                timestamp: Date.now()
+            });
+            if (buffer.entries.length > 100) {
+                buffer.entries.splice(0, buffer.entries.length - 100);
+            }
+        }
+        buffer.append = append;
+        function handleError(event) {
+            var target = event && event.target;
+            var tagName = value(target, 'tagName').toLowerCase() || 'window';
+            var isModule = tagName === 'script' && value(target, 'type').toLowerCase() === 'module';
+            var resourceType = isModule ? 'module' : tagName;
+            var url = value(target, 'src') || value(target, 'href') || value(event, 'filename');
+            var detail = value(event, 'message') || value(event && event.error, 'message');
+            var prefix = tagName === 'window' ? 'Native browser error' : 'Failed to load ' + resourceType;
+            append(prefix + (url ? ' ' + url : '') + (detail ? ': ' + detail : ''));
+        }
+        function rejectionReason(reason) {
+            if (typeof reason === 'string') return reason;
+            var message = value(reason, 'message');
+            if (message) return message;
+            try { return JSON.stringify(reason) || String(reason); }
+            catch (e) { return String(reason); }
+        }
+        function handleRejection(event) {
+            append('Unhandled promise rejection: ' + rejectionReason(event && event.reason));
+        }
+        function handleCspViolation(event) {
+            var blockedUri = value(event, 'blockedURI') || 'resource';
+            var directive = value(event, 'violatedDirective');
+            append('Content Security Policy blocked ' + blockedUri + (directive ? ' (' + directive + ')' : ''));
+        }
+        function overlayText(root, selector) {
+            var element = root && root.querySelector(selector);
+            return value(element, 'textContent').trim();
+        }
+        function captureViteOverlay(overlay) {
+            var root = overlay && overlay.shadowRoot;
+            var message = overlayText(root, '.message-body');
+            if (!message) return;
+            var plugin = overlayText(root, '.plugin');
+            var details = ['Vite build error: ' + (plugin ? plugin + ' ' : '') + message];
+            var file = overlayText(root, '.file');
+            var frame = overlayText(root, '.frame');
+            var stack = overlayText(root, '.stack');
+            if (file) details.push('File: ' + file);
+            if (frame) details.push(frame);
+            if (stack) details.push(stack);
+            append(details.join(String.fromCharCode(10)));
+        }
+        function captureViteOverlays(node) {
+            if (!node || node.nodeType !== 1) return;
+            if (node.matches && node.matches('vite-error-overlay')) captureViteOverlay(node);
+            if (!node.querySelectorAll) return;
+            var overlays = node.querySelectorAll('vite-error-overlay');
+            for (var index = 0; index < overlays.length; index++) captureViteOverlay(overlays[index]);
+        }
+        window.addEventListener('error', handleError, true);
+        window.addEventListener('unhandledrejection', handleRejection);
+        window.addEventListener('securitypolicyviolation', handleCspViolation);
+        if (typeof MutationObserver !== 'undefined' && document.documentElement) {
+            captureViteOverlays(document.documentElement);
+            new MutationObserver(function(records) {
+                for (var recordIndex = 0; recordIndex < records.length; recordIndex++) {
+                    var nodes = records[recordIndex].addedNodes;
+                    for (var nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
+                        captureViteOverlays(nodes[nodeIndex]);
+                    }
+                }
+            }).observe(document.documentElement, { childList: true, subtree: true });
+        }
+        buffer.listenersInstalled = true;
+    })();
+    </script><script data-preview-data-env-pin="true">
+    (function() {
+        var KEY = 'base44_data_env';
+        var APP_API_PATH = "/api/apps/6af62deccafe81b5600e75af/";
+        var STORAGE_KEY = KEY + ':' + APP_API_PATH;
+        var API_ORIGINS = ["https://app.base44.com", "https://base44.app"].map(function(u) { return new URL(u).origin; });
+        var REQUEST_INIT_KEYS = [
+            'method', 'headers', 'credentials', 'mode', 'cache', 'redirect',
+            'referrer', 'referrerPolicy', 'integrity', 'keepalive', 'signal', 'priority',
+        ];
+        var env = new URLSearchParams(window.location.search).get(KEY);
+        try {
+            if (env === 'dev' || env === 'prod') sessionStorage.setItem(STORAGE_KEY, env);
+            else env = sessionStorage.getItem(STORAGE_KEY);
+        } catch (e) {}
+        if (env !== 'dev' && env !== 'prod') return;
+        function pin(url) {
+            try {
+                var u = new URL(url, window.location.href);
+                var sameOrigin = u.origin === window.location.origin;
+                if (!sameOrigin && API_ORIGINS.indexOf(u.origin) === -1) return url;
+                // The app's own server routes and TanStack server functions build
+                // their SDK client from this request, so they need the selection too.
+                var appServerPath = sameOrigin && (
+                    u.pathname.startsWith('/api/') || u.pathname.startsWith('/_serverFn/')
+                );
+                if (!appServerPath && !u.pathname.startsWith(APP_API_PATH)) return url;
+                // Privileged function/agent routes trust this app's Preview host,
+                // not a dev parameter sent to the generic SDK API origin.
+                if (u.origin !== window.location.origin && (
+                    u.pathname.startsWith(APP_API_PATH + 'functions/') ||
+                    u.pathname.startsWith(APP_API_PATH + 'agents/')
+                )) {
+                    u = new URL(u.pathname + u.search + u.hash, window.location.origin);
+                }
+                u.searchParams.set(KEY, env);
+                return u.toString();
+            } catch (e) { return url; }
+        }
+        var origFetch = window.fetch;
+        window.fetch = function(input, init) {
+            if (typeof input === 'string' || input instanceof URL) {
+                return origFetch.call(this, pin(String(input)), init);
+            }
+            if (!input || !input.url) return origFetch.call(this, input, init);
+            var pinned = pin(input.url);
+            if (pinned === input.url) return origFetch.call(this, input, init);
+            try {
+                input = new Request(input, init);
+                if (!input.keepalive || !input.body) {
+                    return origFetch.call(this, new Request(pinned, input));
+                }
+                // RequestInit exposes an existing body as a stream, which Fetch
+                // forbids with keepalive. Buffer only that case, after init overrides.
+                var self = this;
+                return input.blob().then(function(body) {
+                    var rebuilt = { body: body };
+                    REQUEST_INIT_KEYS.forEach(function(key) {
+                        if (input[key] !== undefined) rebuilt[key] = input[key];
+                    });
+                    return origFetch.call(self, new Request(pinned, rebuilt));
+                });
+            } catch (error) { return Promise.reject(error); }
+        };
+        var origOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function(method, url) {
+            arguments[1] = pin(String(url));
+            return origOpen.apply(this, arguments);
+        };
+    })();
+    </script><script defer data-preview-inject="true" data-parent-origins="https://app.base44.com https://superagent.base44.com" data-app-id="6af62deccafe81b5600e75af" data-preview-type="sandbox" data-rum-app-id="db50c921-10c3-4f12-bccb-950fa174b708" data-rum-client-token="pubfe8a4f2972b412b4556fd67e77f82cb4" data-dd-site="datadoghq.com" src="https://app.base44.com/builder-bridge.js?t=1794519157"></script><script>
+    (function() {
+        var IGNORE = { SCRIPT: 1, STYLE: 1, LINK: 1, META: 1, NOSCRIPT: 1, TEMPLATE: 1 };
+        const fire = () => window.parent.postMessage({ type: 'IFRAME_CONTENT_READY' }, '*');
+        function check() {
+            var body = document.body;
+            if (!body) return false;
+            for (var idx = 0; idx < body.children.length; idx++) {
+                if (!IGNORE[body.children[idx].tagName]) return true;
+            }
+            return false;
+        }
+        function start() {
+            if (check()) { fire(); return; }
+            var observer = new MutationObserver(function() {
+                if (check()) { fire(); observer.disconnect(); }
+            });
+            observer.observe(document.documentElement, { childList: true, subtree: true });
+        }
+        if (document.body) { start(); }
+        else { document.addEventListener('DOMContentLoaded', start, { once: true }); }
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        var APP_ID = "6af62deccafe81b5600e75af";
+        var PREVIEW_TYPE = "sandbox";
+        var on404 = false;
+        var booted = false;
+        function detect() { return !!document.querySelector('[data-source-location^="PageNotFound:"]'); }
+        function payload() { return { app_id: APP_ID, preview_type: PREVIEW_TYPE, url_path: window.location.pathname }; }
+        function tick() {
+            var now = detect();
+            if (now && !on404) {
+                on404 = true;
+                window.parent.postMessage({ type: 'PREVIEW_PAGE_NOT_FOUND', payload: payload() }, '*');
+            } else if (!now && (on404 || !booted)) {
+                // On first tick of a fresh document, emit a cleared signal even when
+                // not currently on a 404 — the parent may have latched is404=true from
+                // a previous document at the same URL (e.g. after an iframe reload).
+                on404 = false;
+                window.parent.postMessage({ type: 'PREVIEW_PAGE_NOT_FOUND_CLEARED', payload: payload() }, '*');
+            }
+            booted = true;
+        }
+        function start() {
+            tick();
+            new MutationObserver(tick).observe(document.body, { childList: true, subtree: true });
+        }
+        if (document.body) { start(); }
+        else { document.addEventListener('DOMContentLoaded', start, { once: true }); }
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        function fire() { window.parent.postMessage({ type: 'REACT_ROOT_HAS_CHILDREN' }, '*'); }
+        function findRoot() {
+            return document.getElementById('root')
+                || document.getElementById('app')
+                || document.querySelector('[data-react-root]');
+        }
+        // One-shot: wait for DOMContentLoaded (static HTML parsed by then, so the
+        // Base44 convention <div id="root"> is either present or not coming),
+        // observe the root's childList until the first element child appears,
+        // then fire and disconnect. No tree-wide subtree observer.
+        function start() {
+            var root = findRoot();
+            if (!root) return;
+            if (root.childElementCount > 0) { fire(); return; }
+            var obs = new MutationObserver(function() {
+                if (root.childElementCount > 0) { fire(); obs.disconnect(); }
+            });
+            obs.observe(root, { childList: true });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', start, { once: true });
+        } else { start(); }
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        function postUnsupported(reason) {
+            window.parent.postMessage({
+                type: 'IFRAME_FIRST_CONTENTFUL_PAINT_UNSUPPORTED',
+                payload: { reason: reason, userAgent: navigator.userAgent }
+            }, '*');
+        }
+        if (typeof PerformanceObserver === 'undefined') {
+            postUnsupported('no_performance_observer');
+            return;
+        }
+        try {
+            var obs = new PerformanceObserver(function(list) {
+                var entries = list.getEntries();
+                for (var i = 0; i < entries.length; i++) {
+                    if (entries[i].name === 'first-contentful-paint') {
+                        obs.disconnect();
+                        window.parent.postMessage({ type: 'IFRAME_FIRST_CONTENTFUL_PAINT' }, '*');
+                        return;
+                    }
+                }
+            });
+            obs.observe({ type: 'paint', buffered: true });
+        } catch (e) {
+            postUnsupported('observe_threw:' + (e && e.name ? e.name : 'Error'));
+        }
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        var APP_ID = "6af62deccafe81b5600e75af";
+        var PREVIEW_TYPE = "sandbox";
+        var DEPS_PATH = '/node_modules/.vite/deps/';
+        var fired = false;
+        function isViteDep(url) {
+            return typeof url === 'string' && url.indexOf(DEPS_PATH) !== -1;
+        }
+        var confirmed = {};
+        function looksFailed(entry) {
+            // HTTP failure status (Chrome 109+).
+            if (entry.responseStatus && entry.responseStatus >= 400) return true;
+            // Aborted / blocked / network-error: request ran, nothing decoded.
+            // decodedBodySize === 0 distinguishes from cache hits (Safari has no
+            // deliveryType, so we can't rely on it to exclude cached responses).
+            return entry.transferSize === 0
+                && entry.decodedBodySize === 0
+                && entry.duration > 0
+                && entry.responseEnd > 0;
+        }
+        // WebKit has no responseStatus and zeroes every size on a cache hit, so the
+        // size heuristic alone flags every cached dep. Re-ask the server instead; a
+        // rejected HEAD proves nothing, WebKit aborts it when the frame navigates away.
+        function confirmThenReport(entry) {
+            if (confirmed[entry.name]) return;
+            confirmed[entry.name] = true;
+            fetch(entry.name, { method: 'HEAD', cache: 'no-store' }).then(function(res) {
+                var type = res.headers.get('content-type') || '';
+                if (res.status >= 400 || type.indexOf('text/html') !== -1) report(entry, res.status);
+            }, function() {});
+        }
+        function report(entry, confirmedStatus) {
+            if (fired) return;
+            fired = true;
+            var nativeBuffer = window.__base44_preview_native_failures;
+            if (nativeBuffer && typeof nativeBuffer.append === 'function') {
+                nativeBuffer.append('Failed to load module ' + entry.name);
+            }
+            window.parent.postMessage({
+                type: 'SANDBOX_VITE_DEPS_404',
+                payload: {
+                    app_id: APP_ID,
+                    preview_type: PREVIEW_TYPE,
+                    url: entry.name,
+                    initiator_type: entry.initiatorType,
+                    response_status: entry.responseStatus || confirmedStatus
+                }
+            }, '*');
+        }
+        new PerformanceObserver(function(list) {
+            if (fired) return;
+            var entries = list.getEntries();
+            for (var i = 0; i < entries.length; i++) {
+                if (isViteDep(entries[i].name) && looksFailed(entries[i])) {
+                    if ('responseStatus' in entries[i]) {
+                        report(entries[i]);
+                        return;
+                    }
+                    confirmThenReport(entries[i]);
+                }
+            }
+        }).observe({ type: 'resource', buffered: true });
+    })();
+    </script><script>
+    (function() {
+        if (typeof PerformanceObserver === 'undefined') return;
+        var reported = {};
+        // Only the app's own module trees may put an error over the preview. A page
+        // can load an optional classic script (analytics, a widget) that fails while
+        // the app renders perfectly well; that must not read as broken app code.
+        // Recording is deliberately wider than reporting — the console buffer keeps
+        // every failed module for diagnostics.
+        function isAppModule(path) {
+            return path.indexOf('/src/') === 0 || path.indexOf('/base44/') === 0;
+        }
+        function modulePath(url) {
+            try {
+                var path = new URL(url, window.location.href).pathname;
+                // The bridge probes this standard SDK path opportunistically;
+                // legacy/custom apps are allowed not to provide it.
+                if (path === '/src/api/base44Client.js') return '';
+                if (path.indexOf('/node_modules/.vite/deps/') !== -1) return '';
+                return /[.](?:[cm]?[jt]sx?)$/i.test(path) ? path : '';
+            } catch (e) {
+                return '';
+            }
+        }
+        new PerformanceObserver(function(list) {
+            var entries = list.getEntries();
+            for (var index = 0; index < entries.length; index++) {
+                var entry = entries[index];
+                if (entry.initiatorType !== 'script') continue;
+                var status = entry.responseStatus;
+                if (!status) continue;
+                var path = modulePath(entry.name);
+                if (!path) continue;
+                if (status < 400) {
+                    // Recovered (an HMR fix re-requests it). Forget it, or breaking the
+                    // same path again later this document would be silently suppressed.
+                    delete reported[path];
+                    continue;
+                }
+                var message = status === 404
+                    ? 'Module not found: ' + path
+                    : 'Module failed to load (' + status + '): ' + path;
+                var buffer = window.__base44_preview_native_failures;
+                if (buffer && typeof buffer.append === 'function') buffer.append(message);
+                if (!isAppModule(path) || reported[path] || window.self === window.top) continue;
+                reported[path] = true;
+                window.parent.postMessage({
+                    type: 'SANDBOX_MODULE_LOAD_FAILED',
+                    payload: { path: path, status: status, message: message }
+                }, '*');
+            }
+        }).observe({ type: 'resource', buffered: true });
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        if (typeof performance === 'undefined' || typeof performance.getEntriesByType !== 'function') return;
+        var DEPS_PATH = '/node_modules/.vite/deps/';
+        var QUIESCENCE_MS = 1500;
+        var POLL_MS = 500;
+        var fired = false;
+        var intervalId = setInterval(function() {
+            if (fired) return;
+            var entries = performance.getEntriesByType('resource');
+            var lastDepEnd = 0;
+            for (var i = 0; i < entries.length; i++) {
+                if (entries[i].name.indexOf(DEPS_PATH) === -1) continue;
+                if (entries[i].responseEnd > lastDepEnd) lastDepEnd = entries[i].responseEnd;
+            }
+            if (lastDepEnd === 0) return;
+            if (performance.now() - lastDepEnd >= QUIESCENCE_MS) {
+                fired = true;
+                clearInterval(intervalId);
+                window.parent.postMessage({ type: 'IFRAME_VITE_DEPS_SETTLED' }, '*');
+            }
+        }, POLL_MS);
+    })();
+    </script><script>
+        window.__base44_sdk_attach = import("/src/api/base44Client.js").then(({ base44 }) => {
+            if (base44) {
+                Object.defineProperty(window, "base44_sdk", {
+                    value: base44,
+                    writable: false,
+                    configurable: true
+                });
+            }
+        }).catch((e) => {
+            // Some legacy/custom apps may not have the standard client module.
+            // Leave window.base44_sdk undefined; PreviewLens can fall back to UI/network checks.
+            window.parent.postMessage({ type: "PREVIEW_LENS_SDK_ATTACH_FAILED", error: String(e) }, "*");
+        });
+        </script><script type="module">
+        try {
+            const { createHotContext } = await import("/@vite/client");
+            const hot = createHotContext("/__builder-bridge-hmr");
+            const previewFEVersion = Number(new URLSearchParams(window.location.search).get("previewFE_version")) || 0;
+        
+            let wsOpenedAt = 0;
+            hot.on("vite:ws:connect", () => {
+                wsOpenedAt = Date.now();
+                window.parent.postMessage({ type: "SANDBOX_WS_CONNECT" }, "*");
+            });
+            hot.on("vite:ws:disconnect", () => {
+                let sw = null;
+                try { sw = navigator.serviceWorker; } catch (e) {}  // SecurityError where storage is denied
+                const staleClient = Date.now() - wsOpenedAt < 1000 && !!(sw && sw.controller);
+                window.parent.postMessage({ type: "SANDBOX_WS_DISCONNECT", payload: { stale_client: staleClient } }, "*");
+                if (!staleClient) return;
+                // Vite awaits this before it reloads, so the reload fetches fresh modules.
+                return Promise.race([
+                    Promise.all([
+                        sw.getRegistrations().then((regs) => Promise.all(regs.map((reg) => reg.unregister()))),
+                        caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))),
+                    ]),
+                    new Promise((resolve) => setTimeout(resolve, 2000)),
+                ]).catch(() => {});
+            });
+    
+            hot.on("vite:error", (payload) => {
+                const err = payload && payload.err && typeof payload.err === "object" ? payload.err : {};
+                const message = typeof err.message === "string" ? err.message : "Unknown build error";
+                const plugin = typeof err.plugin === "string" ? `[plugin:${err.plugin}] ` : "";
+                const details = [`Vite build error: ${plugin}${message}`];
+                const loc = err.loc && typeof err.loc === "object" ? err.loc : null;
+                let file = loc && typeof loc.file === "string"
+                    ? loc.file
+                    : (typeof err.id === "string" ? err.id : "");
+                if (file) {
+                    file = file.split("?")[0];
+                    if (loc && Number.isFinite(loc.line) && Number.isFinite(loc.column)) {
+                        file += `:${loc.line}:${loc.column}`;
+                    }
+                    details.push(`File: ${file}`);
+                }
+                if (typeof err.frame === "string" && err.frame.trim()) details.push(err.frame.trim());
+                if (typeof err.stack === "string" && err.stack.trim()) details.push(err.stack.trim());
+
+                const nativeBuffer = window.__base44_preview_native_failures;
+                if (!nativeBuffer || typeof nativeBuffer.append !== "function") return;
+                nativeBuffer.append(details.join(String.fromCharCode(10)));
+            });
+    
+            let hotUpdateStartedAt = 0;
+            hot.on("vite:beforeUpdate", () => { hotUpdateStartedAt = performance.now(); });
+            hot.on("vite:afterUpdate", () => {
+                const startedAt = hotUpdateStartedAt;
+                requestAnimationFrame(() => {
+                    window.parent.postMessage({ type: "SANDBOX_HOT_UPDATE_PAINTED", duration_ms: performance.now() - startedAt }, "*");
+                });
+            });
+    
+            // The pending promise holds Vite's pageReload (it awaits listeners) so the parent swaps a fresh iframe; an editor that doesn't announce previewFE_version falls back to today's in-place reload.
+            hot.on("vite:beforeFullReload", () => {
+                window.parent.postMessage({ type: "sandbox:beforeFullReload" }, "*");
+                if (previewFEVersion > 0) return new Promise(() => {});
+            });
+        } catch (e) {
+            window.parent.postMessage({ type: "SANDBOX_WS_ATTACH_FAILED", error: String(e) }, "*");
+        }
+        </script><script>
+        (function() {
+            var INTERVAL_MS = 30 * 60 * 1000;
+            var last = Date.now();
+            function renew() {
+                last = Date.now();
+                fetch("/base44-preview-session", {
+                    credentials: 'same-origin', cache: 'no-store', headers: {"x-base44-preview-keepalive": "1"}
+                }).then(function(r) {
+                    if ((r.status === 401 || r.status === 403) && window.self !== window.top) window.parent.postMessage({ type: 'preview:requestRefresh' }, '*');
+                }).catch(function() {});
+            }
+            setInterval(renew, INTERVAL_MS);
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible' && Date.now() - last >= INTERVAL_MS) renew();
+            });
+        })();
+        </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        var lastUrl = window.location.href;
+        function notify() {
+            var url = window.location.href;
+            if (url === lastUrl) return;
+            lastUrl = url;
+            window.parent.postMessage({ type: 'APP_CHANGED_URL', url: url }, '*');
+        }
+        var origPush = history.pushState.bind(history);
+        history.pushState = function() { origPush.apply(history, arguments); notify(); };
+        var origReplace = history.replaceState.bind(history);
+        history.replaceState = function() { origReplace.apply(history, arguments); notify(); };
+        window.addEventListener('popstate', notify);
+        window.parent.postMessage({ type: 'APP_CHANGED_URL', url: window.location.href }, '*');
+    })();
+    </script></head>
+
 <body>
 
-<h1>Nouvelle partie</h1>
+<h1>Classement Jeux</h1>
+<p class="sous-titre">Soirées jeux de société entre amis · classement Elo</p>
 
-<!-- ============================
-     CHOIX DU JEU
-============================ -->
-<label>Jeu :</label>
-<select id="jeu" onchange="onJeuChange()"></select>
+<!-- ================= NOUVELLE PARTIE ================= -->
+<div class="carte">
+  <h3 style="margin-top:0">Nouvelle partie</h3>
 
-<!-- MODE (visible seulement si mixte) -->
-<div id="modeContainer" style="margin-top:10px; display:none;">
-  <label>Mode :</label>
-  <select id="mode" onchange="updateClassementInputs()">
-    <option value="competitif">Compétitif</option>
-    <option value="coop">Coop</option>
-  </select>
+  <label for="jeu">Jeu</label>
+  <select id="jeu" onchange="onJeuChange()"></select>
+
+  <div id="modeContainer" class="hidden">
+    <label for="mode">Mode</label>
+    <select id="mode" onchange="updateClassementInputs()">
+      <option value="competitif">Compétitif</option>
+      <option value="coop">Coop</option>
+    </select>
+  </div>
+
+  <div id="teamModeContainer" class="hidden">
+    <label for="teamModeSelect">Jouer en équipe</label>
+    <select id="teamModeSelect" onchange="onTeamModeChange()">
+      <option value="non">Non</option>
+      <option value="oui">Oui</option>
+    </select>
+  </div>
+
+  <div id="teamCountContainer" class="hidden">
+    <label for="teamCount">Nombre d'équipes</label>
+    <select id="teamCount" onchange="updateClassementInputs()">
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+    </select>
+  </div>
+
+  <div id="coopDifficultyContainer" class="hidden">
+    <label for="coopDifficulty">Difficulté</label>
+    <select id="coopDifficulty">
+      <option value="0.8">Facile</option>
+      <option value="1">Moyen</option>
+      <option value="1.2">Difficile</option>
+    </select>
+  </div>
+
+  <h3>Joueurs</h3>
+  <div id="joueursList"></div>
+
+  <h3>Classement de la partie</h3>
+  <div id="classementInputs"></div>
+
+  <button class="principal" onclick="validerPartie()">Valider la partie</button>
+  <p id="statut" class="statut"></p>
 </div>
 
-<!-- MODE ÉQUIPE -->
-<div id="teamModeContainer" style="margin-top:10px; display:none;">
-  <label>Jouer en équipe :</label>
-  <select id="teamModeSelect" onchange="updateClassementInputs()">
-    <option value="non">Non</option>
-    <option value="oui">Oui</option>
-  </select>
-</div>
-
-<div id="teamCountContainer" style="margin-top:10px; display:none;">
-  <label>Nombre d’équipes :</label>
-  <select id="teamCount" onchange="updateClassementInputs()">
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-  </select>
-</div>
-
-<!-- DIFFICULTÉ COOP -->
-<div id="coopDifficultyContainer" style="display:none; margin-top:10px;">
-  <label>Difficulté :</label>
-  <select id="coopDifficulty">
-    <option value="0.8">Facile</option>
-    <option value="1.0">Moyen</option>
-    <option value="1.2">Difficile</option>
-  </select>
-</div>
-
-<!-- JOUEURS -->
-<h3>Joueurs</h3>
-<div id="joueursList"></div>
-
-<!-- INPUTS DE CLASSEMENT -->
-<h3>Classement de la partie</h3>
-<div id="classementInputs"></div>
-
-<!-- BOUTONS -->
-<br>
-<button onclick="ajouterPartie()">Valider</button>
-<button onclick="exporterDonnees()">Exporter</button>
-<input type="file" id="importFile" onchange="importerDonnees()" style="display:none;">
-<button onclick="document.getElementById('importFile').click()">Importer</button>
-<button onclick="reset()">Reset</button>
-
-<!-- ============================
-     CLASSEMENT (repliable)
-============================ -->
-<div class="section">
-  <button class="toggle-btn" onclick="toggle('blocClassement')">▸ Classement actuel</button>
-  <div id="blocClassement" class="hidden">
-    <div id="classement" class="subsection"></div>
+<!-- ================= CLASSEMENT ================= -->
+<div class="carte">
+  <button class="toggle" onclick="toggle('blocClassement', this)">
+    <span>Classement actuel</span><span class="fleche">&#9662;</span>
+  </button>
+  <div id="blocClassement" class="hidden" style="margin-top:10px">
+    <div id="classement"></div>
   </div>
 </div>
 
-<!-- ============================
-     HISTORIQUE (repliable)
-============================ -->
-<div class="section">
-  <button class="toggle-btn" onclick="toggle('blocHistorique')">▸ Historique</button>
-  <div id="blocHistorique" class="hidden">
-    <div id="historique" class="subsection"></div>
+<!-- ================= HISTORIQUE ================= -->
+<div class="carte">
+  <button class="toggle" onclick="toggle('blocHistorique', this)">
+    <span>Historique</span><span class="fleche">&#9662;</span>
+  </button>
+  <div id="blocHistorique" class="hidden" style="margin-top:10px">
+    <div id="historique"></div>
   </div>
 </div>
 
-<!-- ============================
-     GESTION JOUEURS (repliable)
-============================ -->
-<div class="section">
-  <button class="toggle-btn" onclick="toggle('blocJoueurs')">▸ Gestion des joueurs</button>
-  <div id="blocJoueurs" class="hidden">
+<!-- ================= JOUEURS ================= -->
+<div class="carte">
+  <button class="toggle" onclick="toggle('blocJoueurs', this)">
+    <span>Gestion des joueurs</span><span class="fleche">&#9662;</span>
+  </button>
+  <div id="blocJoueurs" class="hidden" style="margin-top:10px">
+    <div id="gestionJoueurs"></div>
+    <label for="newPlayer">Ajouter un joueur</label>
+    <input id="newPlayer" type="text" placeholder="Nom" onkeydown="if (event.key === 'Enter') ajouterJoueur()">
+    <button onclick="ajouterJoueur()">Ajouter</button>
+  </div>
+</div>
 
-    <div id="gestionJoueurs" class="subsection"></div>
+<!-- ================= JEUX ================= -->
+<div class="carte">
+  <button class="toggle" onclick="toggle('blocJeux', this)">
+    <span>Gestion des jeux</span><span class="fleche">&#9662;</span>
+  </button>
+  <div id="blocJeux" class="hidden" style="margin-top:10px">
+    <div id="gestionJeux"></div>
 
-    <button class="toggle-btn" onclick="toggle('blocAddJoueur')">▸ Ajouter joueur</button>
-    <div id="blocAddJoueur" class="hidden subsection">
-      <input id="newPlayer" placeholder="Nom">
-      <button onclick="ajouterJoueur()">Ajouter</button>
+    <p id="titreFormJeu" class="etiquette" style="margin-top:16px">Ajouter un jeu</p>
+
+    <label for="newGameName">Nom</label>
+    <input id="newGameName" type="text" placeholder="Nom du jeu">
+
+    <div class="champ-duo">
+      <div>
+        <label for="newGameComplexity">Complexité (1 à 5)</label>
+        <input id="newGameComplexity" type="number" step="0.1" min="1" max="5" value="2.5" inputmode="decimal">
+      </div>
+      <div>
+        <label for="newGameDuration">Durée (minutes)</label>
+        <input id="newGameDuration" type="number" step="5" min="1" value="45" inputmode="numeric">
+      </div>
     </div>
 
+    <label for="newGameMode">Mode</label>
+    <select id="newGameMode" onchange="onModeChangeNewGame()">
+      <option value="competitif">Compétitif</option>
+      <option value="coop">Coop</option>
+      <option value="mixte">Mixte</option>
+    </select>
+
+    <div id="victoryTypeContainer">
+      <label for="newGameVictoryType">Victoire (compétitif)</label>
+      <select id="newGameVictoryType">
+        <option value="classement">Classement</option>
+        <option value="binaire">Victoire / Défaite</option>
+      </select>
+    </div>
+
+    <label for="newGameVariableDuration">Durée variable</label>
+    <select id="newGameVariableDuration">
+      <option value="non">Non</option>
+      <option value="oui">Oui</option>
+    </select>
+
+    <label for="newGameTeamMode">Équipes</label>
+    <select id="newGameTeamMode">
+      <option value="non">Jamais</option>
+      <option value="oui">Toujours</option>
+      <option value="variable">Variable</option>
+    </select>
+
+    <button class="principal" id="btnEnregistrerJeu" onclick="enregistrerJeu()">Ajouter le jeu</button>
+    <button id="btnAnnulerJeu" class="hidden" onclick="annulerEditionJeu()">Annuler la modification</button>
   </div>
 </div>
 
-<!-- ============================
-     GESTION JEUX (repliable)
-============================ -->
-<div class="section">
-  <button class="toggle-btn" onclick="toggle('blocJeux')">▸ Gestion des jeux</button>
-  <div id="blocJeux" class="hidden">
-
-    <div id="gestionJeux" class="subsection"></div>
-
-    <button class="toggle-btn" onclick="toggle('blocAddJeu')">▸ Ajouter jeu</button>
-    <div id="blocAddJeu" class="hidden subsection">
-      <input id="newGameName" placeholder="Nom"><br>
-      <input id="newGameComplexity" placeholder="Complexité"><br>
-      <input id="newGameDuration" placeholder="Durée"><br>
-      
-      <label>Mode :</label>
-      <select id="newGameMode" onchange="onModeChangeNewGame()">
-        <option value="competitif">Compétitif</option>
-        <option value="coop">Coop</option>
-        <option value="mixte">Mixte</option>
-      </select><br><br>
-      
-      <div id="victoryTypeContainer">
-        <label>Type de victoire (compétitif) :</label>
-        <select id="newGameVictoryType">
-          <option value="classement">Classement</option>
-          <option value="binaire">Victoire / Défaite</option>
-        </select><br><br>
-      </div>
-
-  <label>Durée variable :</label>
-  <select id="newGameVariableDuration">
-    <option value="non">Non</option>
-    <option value="oui">Oui</option>
-  </select><br><br>
-
-  <label>Mode équipe :</label>
-  <select id="newGameTeamMode">
-    <option value="non">Jamais en équipe</option>
-    <option value="oui">Toujours en équipe</option>
-    <option value="variable">Variable</option>
-  </select><br><br>
-
-  <button onclick="ajouterJeu()">Ajouter jeu</button>
-</div>
-
+<!-- ================= DONNÉES ================= -->
+<div class="carte">
+  <button class="toggle" onclick="toggle('blocDonnees', this)">
+    <span>Données</span><span class="fleche">&#9662;</span>
+  </button>
+  <div id="blocDonnees" class="hidden" style="margin-top:10px">
+    <button onclick="exporterDonnees()">Exporter (JSON)</button>
+    <input type="file" id="importFile" accept="application/json" onchange="importerDonnees(event)" class="hidden">
+    <button onclick="document.getElementById('importFile').click()">Importer</button>
+    <button class="danger" onclick="reset()">Tout réinitialiser</button>
   </div>
 </div>
 
-<!-- ============================================================
-     SCRIPT FINAL OPTIMISÉ
-============================================================ -->
 <script>
+/* ============================================================
+   CONSTANTES
+============================================================ */
+var START_SCORE = 500;
+var K_FACTOR = 40;
+var COOP_CAP = 20;
+var REGRESSION_RATE = 0.02;
 
-const REGRESSION_RATE = 0.02;  // <--- tu changes ici si besoin
+/* ============================================================
+   ÉTAT
+============================================================ */
+var jeux = lire("jeux", {});
+var joueurs = lire("joueurs", {});
+var historique = lire("historique", []);
+var coopGains = {};
+var selection = {};
+var equipes = {};
+var positionsJoueurs = {};
+var positionsEquipes = {};
+var jeuEnEdition = null;
+var minuteurStatut = null;
 
-let jeux = JSON.parse(localStorage.getItem("jeux")) || {};
-let joueurs = JSON.parse(localStorage.getItem("joueurs")) || {};
-let historique = JSON.parse(localStorage.getItem("historique")) || [];
-let coopGainSoiree = {};
-
-// 🔥 Auto backup toutes les 30 secondes
-setInterval(() => {
-  const data = { joueurs, jeux, historique };
-  localStorage.setItem("backup_auto", JSON.stringify(data));
-}, 30000);
-
-function toggle(id) {
-  let el = document.getElementById(id);
-  el.classList.toggle("hidden");
-}
-
-function onModeChangeNewGame() {
-  let mode = document.getElementById("newGameMode").value;
-  let victoryDiv = document.getElementById("victoryTypeContainer");
-
-  if (mode === "coop") {
-    victoryDiv.style.display = "none";
-  } else {
-    victoryDiv.style.display = "block";
+/* ============================================================
+   STOCKAGE + OUTILS
+============================================================ */
+function lire(cle, defaut) {
+  try {
+    var brut = localStorage.getItem(cle);
+    return brut ? JSON.parse(brut) : defaut;
+  } catch (erreur) {
+    return defaut;
   }
 }
 
-/* ============================
-   AFFICHAGE
-============================ */
-function afficherJeux() {
-  let select = document.getElementById("jeu");
-  select.innerHTML = "";
-  Object.keys(jeux).forEach(j => {
-    let o = document.createElement("option");
-    o.value = j;
-    o.textContent = j;
-    select.appendChild(o);
+function ecrire(cle, valeur) {
+  try {
+    localStorage.setItem(cle, JSON.stringify(valeur));
+  } catch (erreur) {
+    /* quota plein : on garde les données en mémoire */
+  }
+}
+
+function sauverTout() {
+  ecrire("jeux", jeux);
+  ecrire("joueurs", joueurs);
+  ecrire("historique", historique);
+}
+
+function echapper(valeur) {
+  return String(valeur == null ? "" : valeur).replace(/[&<>"']/g, function (caractere) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[caractere];
   });
-
-  if (Object.keys(jeux).length > 0) {
-    onJeuChange();
-  }
 }
 
-function afficherJoueurs() {
-  let html = "";
+function afficherStatut(message) {
+  var zone = document.getElementById("statut");
+  if (!zone) return;
+  zone.textContent = message;
+  if (minuteurStatut) clearTimeout(minuteurStatut);
+  minuteurStatut = setTimeout(function () { zone.textContent = ""; }, 5000);
+}
 
-  Object.keys(joueurs).forEach(j => {
-    html += `
-    <div class="player-item">
-      <input type="checkbox" value="${j}" onchange="updateClassementInputs()">
-      <span>${j}</span>
-      <select id="team_${j}" class="teamSelect" style="display:none;">
-        </select>
-        </div>
-        `;
+function toggle(id, bouton) {
+  var bloc = document.getElementById(id);
+  if (!bloc) return;
+  bloc.classList.toggle("hidden");
+  if (bouton) bouton.classList.toggle("ouvert", !bloc.classList.contains("hidden"));
+}
+
+/* ============================================================
+   LECTURE DU JEU / MODE SÉLECTIONNÉ
+============================================================ */
+function nomJeuActif() {
+  var select = document.getElementById("jeu");
+  return select ? select.value : "";
+}
+
+function jeuActif() {
+  return jeux[nomJeuActif()] || null;
+}
+
+function modeReel() {
+  var jeu = jeuActif();
+  if (!jeu) return "competitif";
+  if (jeu.mode === "mixte") {
+    var select = document.getElementById("mode");
+    return select ? select.value : "competitif";
+  }
+  return jeu.mode;
+}
+
+function equipeActive(jeu) {
+  if (!jeu) return "non";
+  if (jeu.modeEquipe === "variable") {
+    var select = document.getElementById("teamModeSelect");
+    return select ? select.value : "non";
+  }
+  return jeu.modeEquipe || "non";
+}
+
+function nombreEquipes() {
+  var select = document.getElementById("teamCount");
+  if (!select) return 2;
+  var valeur = parseInt(select.value, 10);
+  return valeur >= 2 && valeur <= 4 ? valeur : 2;
+}
+
+function joueursChoisis() {
+  return Object.keys(joueurs).filter(function (nom) {
+    return selection[nom] === true;
   });
-
-  document.getElementById("joueursList").innerHTML = html;
 }
 
-function afficherClassement() {
-  let sorted = Object.entries(joueurs).sort((a,b)=>b[1].score - a[1].score);
-  let html = "<ul>";
-  sorted.forEach(([nom,data]) => html += `<li>${nom} : ${data.score.toFixed(0)}</li>`);
-  html += "</ul>";
-  document.getElementById("classement").innerHTML = html;
-}
-
-function afficherHistorique() {
-  let html = "<ul>";
-  historique.slice().reverse().forEach(p => {
-    html += `<li>${p.date} - ${p.jeu} (${p.joueurs.join(", ")})</li>`;
-  });
-  html += "</ul>";
-  document.getElementById("historique").innerHTML = html;
-}
-
-function afficherGestionJoueurs() {
-  let html = "<ul>";
-  Object.entries(joueurs).forEach(([nom,data])=>{
-    html += `<li><b>${nom}</b> (${data.score.toFixed(0)})
-      <button onclick="modifierJoueur('${nom}')">Modifier</button>
-      <button onclick="supprimerJoueur('${nom}')">Supprimer</button>
-    </li>`;
-  });
-  html += "</ul>";
-  document.getElementById("gestionJoueurs").innerHTML = html;
-}
-
-function afficherGestionJeux() {
-  let html = "<ul>";
-  Object.entries(jeux).forEach(([nom,data])=>{
-    html += `<li><b>${nom}</b> (C:${data.complexite}, D:${data.duree}, M:${data.mode}, Eq:${data.modeEquipe || "non"})
-      <button onclick="modifierJeu('${nom}')">Modifier</button>
-      <button onclick="supprimerJeu('${nom}')">Supprimer</button>
-      </li>`;
-  });
-  html += "</ul>";
-  document.getElementById("gestionJeux").innerHTML = html;
-}
-
-/* ============================
-   AJOUT / MODIF
-============================ */
-function ajouterJeu() {
-  let nom = newGameName.value.trim();
-  if (!nom) return;
-
-  let mode = newGameMode.value;
-
-
-  // Coop → type de victoire toujours binaire
-  let victoireType = (mode === "coop")
-    ? "binaire"
-    : newGameVictoryType.value;
-
-  jeux[nom] = {
-    complexite: parseFloat(newGameComplexity.value),
-    duree: parseFloat(newGameDuration.value),
-    mode: mode,
-    victoire: victoireType,            // type de victoire compétitif
-    variable: newGameVariableDuration.value, // durée variable oui/non
-    modeEquipe: document.getElementById("newGameTeamMode").value
-  };
-
-  localStorage.setItem("jeux", JSON.stringify(jeux));
-
-  afficherJeux();
-  afficherGestionJeux();
-
-  // Reset des champs
-  newGameName.value = "";
-  newGameComplexity.value = "";
-  newGameDuration.value = "";
-  newGameMode.value = "competitif";
-  newGameVictoryType.value = "classement";
-  newGameVariableDuration.value = "non";
-
-  onModeChangeNewGame(); // réinitialise l'affichage du type de victoire
-}
-
-function ajouterJoueur() {
-  let nom = newPlayer.value;
-  if (!nom) return;
-  joueurs[nom] = { score:500, debut:null };
-  localStorage.setItem("joueurs", JSON.stringify(joueurs));
-  afficherJoueurs();
-  afficherClassement();
-  afficherGestionJoueurs();
-}
-
-function supprimerJoueur(nom) {
-  delete joueurs[nom];
-  localStorage.setItem("joueurs", JSON.stringify(joueurs));
-  afficherJoueurs(); afficherClassement(); afficherGestionJoueurs();
-}
-
-function modifierJoueur(nom) {
-  let newName = prompt("Nom :", nom);
-  if (!newName) return;
-  let newScore = parseFloat(prompt("Score :", joueurs[nom].score));
-  let ancien = joueurs[nom];
-
-  delete joueurs[nom];
-
-  joueurs[newName] = {
-    score: newScore,
-    debut: ancien.debut || null
-  };
-  localStorage.setItem("joueurs", JSON.stringify(joueurs));
-  afficherJoueurs(); afficherClassement(); afficherGestionJoueurs();
-}
-
-function supprimerJeu(nom) {
-  delete jeux[nom];
-  localStorage.setItem("jeux", JSON.stringify(jeux));
-  afficherJeux(); afficherGestionJeux();
-}
-
-function modifierJeu(nom) {
-  let d = jeux[nom];
-  let newName = prompt("Nom :", nom);
-  if (!newName) return;
-  let c = parseFloat(prompt("Complexité :", d.complexite));
-  let du = parseFloat(prompt("Durée :", d.duree));
-  let m = prompt("Mode (competitif/coop/mixte) :", d.mode);
-  delete jeux[nom];
-  jeux[newName] = {
-    complexite: c,
-    duree: du,
-    mode: m,
-    victoire: d.victoire || "classement",
-    variable: d.variable || "non",
-    modeEquipe: prompt("Mode équipe (oui/non/variable) :", d.modeEquipe || "non")
-  };
-  localStorage.setItem("jeux", JSON.stringify(jeux));
-  afficherJeux(); afficherGestionJeux();
-}
-
-/* ============================
-   MODE MIXTE + INPUTS
-============================ */
-function onJeuChange() {
-  let jeu = document.getElementById("jeu").value;
-  let data = jeux[jeu];
-
-  if (!data) return;
-
-  // 🔥 Rétro-compatibilité : anciens jeux sans modeEquipe
-  if (!data.modeEquipe) data.modeEquipe = "non";
-
-  let teamModeContainer = document.getElementById("teamModeContainer");
-  let teamCountContainer = document.getElementById("teamCountContainer");
-
-  if (data.modeEquipe === "oui") {
-    teamModeContainer.style.display = "none";
-    teamCountContainer.style.display = "block";
-    document.getElementById("teamModeSelect").value = "oui";
+/* ============================================================
+   AFFICHAGES
+============================================================ */
+function renderJeuSelect() {
+  var select = document.getElementById("jeu");
+  var noms = Object.keys(jeux).sort(function (a, b) { return a.localeCompare(b, "fr"); });
+  var precedent = select.value;
+  if (noms.length === 0) {
+    select.innerHTML = '<option value="">— aucun jeu —</option>';
+    return;
   }
-  else if (data.modeEquipe === "non") {
-    teamModeContainer.style.display = "none";
-    teamCountContainer.style.display = "none";
-    document.getElementById("teamModeSelect").value = "non";
+  select.innerHTML = noms.map(function (nom) {
+    return '<option value="' + echapper(nom) + '">' + echapper(nom) + "</option>";
+  }).join("");
+  if (noms.indexOf(precedent) !== -1) select.value = precedent;
+}
+
+function optionsEquipes(selectionnee) {
+  var total = nombreEquipes();
+  var html = "";
+  for (var i = 1; i <= total; i++) {
+    html += '<option value="' + i + '"' + (i === selectionnee ? " selected" : "") + ">Équipe " + i + "</option>";
   }
-  else { // variable
-    teamModeContainer.style.display = "block";
-    teamCountContainer.style.display = "none";
+  return html;
+}
+
+function renderJoueurs() {
+  var conteneur = document.getElementById("joueursList");
+  var jeu = jeuActif();
+  var enEquipe = equipeActive(jeu) === "oui";
+  var noms = Object.keys(joueurs).sort(function (a, b) { return a.localeCompare(b, "fr"); });
+
+  if (noms.length === 0) {
+    conteneur.innerHTML = '<p class="vide">Aucun joueur : ajoute-les dans « Gestion des joueurs ».</p>';
+    return;
   }
 
-  // Mode mixte
-  let modeContainer = document.getElementById("modeContainer");
-  let modeSelect = document.getElementById("mode");
+  conteneur.innerHTML = noms.map(function (nom) {
+    var coche = selection[nom] === true;
+    var equipe = parseInt(equipes[nom], 10) || 1;
+    return '<div class="player-item">' +
+      '<input type="checkbox" data-cocher="' + echapper(nom) + '"' + (coche ? " checked" : "") + ">" +
+      '<span class="player-name" data-cocher="' + echapper(nom) + '">' + echapper(nom) + "</span>" +
+      (enEquipe && coche
+        ? '<select class="teamSelect" data-equipe="' + echapper(nom) + '">' + optionsEquipes(equipe) + "</select>"
+        : "") +
+      "</div>";
+  }).join("");
+}
 
-  if (data.mode === "mixte") {
-    modeContainer.style.display = "block";
-  } else {
-    modeContainer.style.display = "none";
-    modeSelect.value = data.mode;
+function optionsNombres(total, selectionnee) {
+  var html = "";
+  for (var i = 1; i <= total; i++) {
+    html += '<option value="' + i + '"' + (i === selectionnee ? " selected" : "") + ">" + i + "</option>";
   }
-
-  updateClassementInputs();
+  return html;
 }
 
 function updateClassementInputs() {
+  var zone = document.getElementById("classementInputs");
+  var zoneDifficulte = document.getElementById("coopDifficultyContainer");
+  var jeu = jeuActif();
 
-  let selected = Array.from(document.querySelectorAll('#joueursList input:checked')).map(el=>el.value);
-
-  let jeu = document.getElementById("jeu").value;
-  let data = jeux[jeu];
-
-  if (!data) {
-    document.getElementById("coopDifficultyContainer").style.display = "none";
-    document.getElementById("classementInputs").innerHTML = "";
+  if (!jeu) {
+    zone.innerHTML = "";
+    zoneDifficulte.classList.add("hidden");
     return;
   }
 
-  // Déterminer si on joue en équipe
-  let teamMode = (data.modeEquipe === "variable")
-    ? document.getElementById("teamModeSelect").value
-    : data.modeEquipe;
+  var enEquipe = equipeActive(jeu) === "oui";
+  var mode = modeReel();
+  zoneDifficulte.classList.toggle("hidden", enEquipe || mode !== "coop");
 
-  let teamCount = parseInt(document.getElementById("teamCount").value) || 2;
+  var choisis = joueursChoisis();
 
-  // 🔥 Correction : ne reconstruire les selects d’équipe QUE si nécessaire
-  document.querySelectorAll(".teamSelect").forEach(sel => {
-    sel.style.display = (teamMode === "oui") ? "inline-block" : "none";
-
-    // Si le nombre d’options ne correspond pas, on reconstruit
-    if (sel.options.length !== teamCount) {
-      sel.innerHTML = "";
-      for (let i = 1; i <= teamCount; i++) {
-        sel.innerHTML += `<option value="${i}">${i}</option>`;
-      }
-    }
-  });
-
-  // Si on joue en équipe → classement par équipe
-  if (teamMode === "oui") {
-    let html = "<label>Classement des équipes :</label><br>";
-    for (let i = 1; i <= teamCount; i++) {
-      html += `Équipe ${i} : <select id="teamPos_${i}">${genererOptions(teamCount)}</select><br>`;
-    }
-    document.getElementById("classementInputs").innerHTML = html;
+  if (choisis.length === 0) {
+    zone.innerHTML = '<p class="vide">Coche au moins un joueur pour saisir le résultat.</p>';
     return;
   }
 
-  // Déterminer le mode réel
-  let modeReel = (data.mode === "mixte")
-    ? document.getElementById("mode").value
-    : data.mode;
-
-  // Déterminer le type de victoire
-  let type;
-
-  if (modeReel === "coop") {
-    type = "binaire";
-  } else if (modeReel === "competitif") {
-    type = data.victoire;
-  } else if (modeReel === "mixte") {
-    let selectedMode = document.getElementById("mode").value;
-    type = (selectedMode === "coop") ? "binaire" : data.victoire;
+  if (enEquipe) {
+    var total = nombreEquipes();
+    choisis.forEach(function (nom) {
+      var equipe = parseInt(equipes[nom], 10) || 1;
+      equipes[nom] = equipe > total ? 1 : equipe;
+    });
+    var htmlEquipes = '<p class="etiquette">Classement des équipes</p>';
+    for (var t = 1; t <= total; t++) {
+      var valeur = parseInt(positionsEquipes[t], 10) || t;
+      if (valeur > total) valeur = t;
+      htmlEquipes += '<div class="ligne"><span>Équipe ' + t + "</span>" +
+        '<select data-position-equipe="' + t + '">' + optionsNombres(total, valeur) + "</select></div>";
+    }
+    zone.innerHTML = htmlEquipes;
+    return;
   }
 
-  // Affichage difficulté coop
-  let coopDiv = document.getElementById("coopDifficultyContainer");
-  coopDiv.style.display = (modeReel === "coop") ? "block" : "none";
-
-  // Génération des inputs
-  let html = "";
-
-  if (modeReel === "coop") {
-
-    html = `
-      <label>Résultat :</label>
-      <select id="resultat_coop">
-        <option value="1">Victoire</option>
-        <option value="0">Défaite</option>
-      </select>
-    `;
-
-  } else if (type === "binaire") {
-
-    html = `<label>Gagnant :</label><br>`;
-    selected.forEach(j => {
-      html += `<label><input type="radio" name="gagnant" value="${j}">${j}</label><br>`;
-    });
-
-  } else if (type === "classement") {
-
-    selected.forEach(j => {
-      html += `${j} : <select id="pos_${j}">${genererOptions(selected.length)}</select><br>`;
-    });
-
+  if (mode === "coop") {
+    zone.innerHTML = '<p class="etiquette">Résultat</p>' +
+      '<select id="resultatCoop">' +
+      '<option value="1">Victoire</option>' +
+      '<option value="0">Défaite</option>' +
+      "</select>";
+    return;
   }
 
-  document.getElementById("classementInputs").innerHTML = html;
+  if ((jeu.victoire || "classement") === "binaire") {
+    zone.innerHTML = '<p class="etiquette">Gagnant</p>' + choisis.map(function (nom) {
+      return '<label class="radio"><input type="radio" name="gagnant" value="' + echapper(nom) + '">' +
+        echapper(nom) + "</label>";
+    }).join("");
+    return;
+  }
+
+  zone.innerHTML = '<p class="etiquette">Classement de la partie</p>' + choisis.map(function (nom, index) {
+    var valeur = parseInt(positionsJoueurs[nom], 10) || index + 1;
+    if (valeur > choisis.length) valeur = index + 1;
+    return '<div class="ligne"><span class="rang-nom">' + echapper(nom) + "</span>" +
+      '<select data-position-joueur="' + echapper(nom) + '">' +
+      optionsNombres(choisis.length, valeur) + "</select></div>";
+  }).join("");
 }
 
-function genererOptions(n) {
-  let o = "";
-  for (let i=1;i<=n;i++) o += `<option value="${i}">${i}</option>`;
-  return o;
+function renderClassement() {
+  var zone = document.getElementById("classement");
+  var lignes = Object.keys(joueurs).map(function (nom) {
+    return { nom: nom, score: Number(joueurs[nom].score) || 0 };
+  }).sort(function (a, b) { return b.score - a.score; });
+
+  if (lignes.length === 0) {
+    zone.innerHTML = '<p class="vide">Aucun joueur enregistré.</p>';
+    return;
+  }
+
+  zone.innerHTML = lignes.map(function (ligne, index) {
+    return '<div class="rang">' +
+      '<span class="pastille' + (index === 0 ? " premier" : "") + '">' + (index + 1) + "</span>" +
+      '<span class="rang-nom">' + echapper(ligne.nom) + "</span>" +
+      '<span class="score">' + Math.round(ligne.score) + "</span>" +
+      "</div>";
+  }).join("");
 }
 
-/* ============================
-   AJOUT PARTIE
-============================ */
-function ajouterPartie() {
-
-  let selected = Array.from(document.querySelectorAll('#joueursList input:checked')).map(el=>el.value);
-  if (selected.length === 0) return;
-
-  let jeu = document.getElementById("jeu").value;
-  let data = jeux[jeu];
-  if (!data) return;
-
-  // Déterminer le mode réel
-  let modeReel = (data.mode === "mixte")
-    ? document.getElementById("mode").value
-    : data.mode;
-
-  // Déterminer le type de victoire
-  let type;
-  if (modeReel === "coop") {
-    type = "binaire"; // toujours
-  } else if (modeReel === "competitif") {
-    type = data.victoire; // type du jeu
-  } else if (modeReel === "mixte") {
-    let selectedMode = document.getElementById("mode").value;
-    type = (selectedMode === "coop") ? "binaire" : data.victoire;
-  }
-
-  let parsed = [];
-
-  // Déterminer si on joue en équipe
-  let teamMode = (data.modeEquipe === "variable")
-  ? document.getElementById("teamModeSelect").value
-  : data.modeEquipe;
-  
-  let teamCount = parseInt(document.getElementById("teamCount").value) || 2;
-  
-  if (teamMode === "oui") {
-    // Construire les équipes
-    let equipes = {};
-    selected.forEach(j => {
-    let t = parseInt(document.getElementById("team_" + j).value);
-    if (!equipes[t]) equipes[t] = [];
-    equipes[t].push(j);
-  });
-
-  // Récupérer les positions d’équipe
-  let positions = {};
-  for (let i = 1; i <= teamCount; i++) {
-    positions[i] = parseInt(document.getElementById("teamPos_" + i).value);
-  }
-
-  // Construire parsed : chaque joueur hérite de la position de son équipe
-  parsed = [];
-  Object.entries(equipes).forEach(([team, joueursTeam]) => {
-    joueursTeam.forEach(j => {
-      parsed.push({
-        nom: j,
-        equipe: parseInt(team),
-        position: positions[team]
-      });
-    });
-  });
-  }
-
-  if (teamMode !== "oui") {
-
-    // Coop → victoire/défaite
-    if (modeReel === "coop") {
-      let r = parseInt(document.getElementById("resultat_coop").value);
-      selected.forEach(j => parsed.push({ nom:j, scoreFixe:r }));
-    }
-
-    // Binaire → gagnant/perdants
-    else if (type === "binaire") {
-     let g = document.querySelector('input[name="gagnant"]:checked')?.value;
-      if (type === "binaire" && !g) {
-       alert("Choisis un gagnant");
-        return;
-      }
-      selected.forEach(j => parsed.push({ nom:j, scoreFixe:(j===g?1:0) }));
-    }
-
-    // Classement → positions
-    else if (type === "classement") {
-     selected.forEach(j=>{
-        parsed.push({ nom:j, position:parseInt(document.getElementById("pos_"+j).value) });
-      });
-    }
-  }
-
-  // Enregistrer la date de début pour les nouveaux joueurs
-  let today = new Date().toISOString().split("T")[0];
-  selected.forEach(j => {
-    if (!joueurs[j].debut) {
-      joueurs[j].debut = today;
-    }
-  });
-
-  // Enregistrer la partie
-  historique.push({
-    id: Date.now(),
-    date: new Date().toISOString().split("T")[0],
-    joueurs: parsed.map(p => p.nom),
-    jeu: jeu,
-    mode: modeReel,
-    resultat: parsed
-  });
-  localStorage.setItem("historique", JSON.stringify(historique));
-
-  // Régression + Elo
-  regressionSessions();
-  calculElo(parsed, modeReel, data);
-
-  afficherClassement();
-  afficherHistorique();
+function libelleMode(mode) {
+  return { competitif: "Compétitif", coop: "Coop", mixte: "Mixte" }[mode] || mode || "—";
 }
 
-/* ============================
-   RÉGRESSION SESSIONS
-============================ */
-function regressionSessions() {
-
-  let sessions = {};
-
-  // 🔹 Construire les sessions par joueur
-  historique.forEach(p => {
-
-    let datePartie = new Date(p.date).getTime();
-
-    p.joueurs.forEach(j => {
-
-      if (!joueurs[j] || !joueurs[j].debut) return;
-
-      let debut = new Date(joueurs[j].debut).getTime();
-
-      if (datePartie >= debut) {
-
-        if (!sessions[j]) sessions[j] = new Set();
-
-        sessions[j].add(datePartie);
-      }
-    });
-  });
-
-  // 🔹 Analyse + régression
-  Object.keys(joueurs).forEach(joueur => {
-
-    let debut = joueurs[joueur].debut;
-    if (!debut) return;
-
-    let debutDate = new Date(debut).getTime();
-
-    let counts = Object.keys(joueurs)
-      .filter(j => sessions[j])
-      .map(j => {
-        return [...sessions[j]].filter(t => t >= debutDate).length;
-      })
-      .filter(n => n > 0);
-
-    if (counts.length === 0) return;
-
-    let moyenne = counts.reduce((a, b) => a + b, 0) / counts.length;
-
-    let nb = sessions[joueur]
-      ? [...sessions[joueur]].filter(t => t >= debutDate).length
-      : 0;
-
-    let ratio = nb / moyenne;
-
-    // 🔹 Régression vers 500
-    if (ratio < 0.5) {
-      joueurs[joueur].score += (500 - joueurs[joueur].score) * REGRESSION_RATE;
-    }
-
-    if (ratio > 1.5 && joueurs[joueur].score < 500) {
-      joueurs[joueur].score += (500 - joueurs[joueur].score) * REGRESSION_RATE;
-    }
-  });
-
-  localStorage.setItem("joueurs", JSON.stringify(joueurs));
+function formaterDate(valeur) {
+  var date = new Date(valeur);
+  if (isNaN(date.getTime())) return String(valeur || "");
+  return date.toLocaleDateString("fr-CH");
 }
 
-/* ============================
+function renderHistorique() {
+  var zone = document.getElementById("historique");
+  if (historique.length === 0) {
+    zone.innerHTML = '<p class="vide">Aucune partie enregistrée.</p>';
+    return;
+  }
+  zone.innerHTML = historique.slice().reverse().map(function (partie) {
+    var noms = (partie.joueurs || []).join(" · ");
+    return '<div class="partie">' +
+      '<div class="ligne" style="border:none;padding:0">' +
+      "<strong>" + echapper(partie.jeu) + "</strong>" +
+      '<span class="meta">' + echapper(formaterDate(partie.date)) + "</span>" +
+      "</div>" +
+      '<p class="meta">' + echapper(libelleMode(partie.mode)) + " · " + echapper(noms) + "</p>" +
+      "</div>";
+  }).join("");
+}
+
+function renderGestionJoueurs() {
+  var zone = document.getElementById("gestionJoueurs");
+  var noms = Object.keys(joueurs).sort(function (a, b) { return a.localeCompare(b, "fr"); });
+  if (noms.length === 0) {
+    zone.innerHTML = '<p class="vide">Aucun joueur enregistré.</p>';
+    return;
+  }
+  zone.innerHTML = noms.map(function (nom) {
+    return '<div class="ligne">' +
+      '<span class="rang-nom">' + echapper(nom) +
+      ' <span class="meta">' + Math.round(Number(joueurs[nom].score) || 0) + "</span></span>" +
+      '<span class="petits-boutons">' +
+      '<button data-modifier-joueur="' + echapper(nom) + '">Modifier</button>' +
+      '<button class="danger" data-supprimer-joueur="' + echapper(nom) + '">Suppr.</button>' +
+      "</span></div>";
+  }).join("");
+}
+
+function renderGestionJeux() {
+  var zone = document.getElementById("gestionJeux");
+  var noms = Object.keys(jeux).sort(function (a, b) { return a.localeCompare(b, "fr"); });
+  if (noms.length === 0) {
+    zone.innerHTML = '<p class="vide">Aucun jeu enregistré.</p>';
+    return;
+  }
+  zone.innerHTML = noms.map(function (nom) {
+    var jeu = jeux[nom];
+    var equipe = { non: "sans équipe", oui: "en équipe", variable: "équipe variable" }[jeu.modeEquipe] || "sans équipe";
+    return '<div class="ligne">' +
+      '<span class="rang-nom">' + echapper(nom) +
+      ' <span class="meta">C' + echapper(jeu.complexite) + " · " + echapper(jeu.duree) + " min · " +
+      echapper(libelleMode(jeu.mode)) + " · " + echapper(equipe) + "</span></span>" +
+      '<span class="petits-boutons">' +
+      '<button data-modifier-jeu="' + echapper(nom) + '">Modifier</button>' +
+      '<button class="danger" data-supprimer-jeu="' + echapper(nom) + '">Suppr.</button>' +
+      "</span></div>";
+  }).join("");
+}
+
+function renderAll() {
+  renderJeuSelect();
+  onJeuChange();
+  renderClassement();
+  renderHistorique();
+  renderGestionJoueurs();
+  renderGestionJeux();
+}
+
+/* ============================================================
+   CHANGEMENTS DANS L'INTERFACE
+============================================================ */
+function onJeuChange() {
+  var jeu = jeuActif();
+  var modeContainer = document.getElementById("modeContainer");
+  var modeSelect = document.getElementById("mode");
+  var teamModeContainer = document.getElementById("teamModeContainer");
+  var teamModeSelect = document.getElementById("teamModeSelect");
+  var teamCountContainer = document.getElementById("teamCountContainer");
+
+  if (!jeu) {
+    modeContainer.classList.add("hidden");
+    teamModeContainer.classList.add("hidden");
+    teamCountContainer.classList.add("hidden");
+    renderJoueurs();
+    updateClassementInputs();
+    return;
+  }
+
+  if (!jeu.modeEquipe) jeu.modeEquipe = "non";
+
+  if (jeu.mode === "mixte") {
+    modeContainer.classList.remove("hidden");
+  } else {
+    modeContainer.classList.add("hidden");
+    modeSelect.value = jeu.mode;
+  }
+
+  if (jeu.modeEquipe === "oui") {
+    teamModeContainer.classList.add("hidden");
+    teamModeSelect.value = "oui";
+    teamCountContainer.classList.remove("hidden");
+  } else if (jeu.modeEquipe === "non") {
+    teamModeContainer.classList.add("hidden");
+    teamModeSelect.value = "non";
+    teamCountContainer.classList.add("hidden");
+  } else {
+    teamModeContainer.classList.remove("hidden");
+    teamCountContainer.classList.toggle("hidden", teamModeSelect.value !== "oui");
+  }
+
+  renderJoueurs();
+  updateClassementInputs();
+}
+
+function onTeamModeChange() {
+  var valeur = document.getElementById("teamModeSelect").value;
+  document.getElementById("teamCountContainer").classList.toggle("hidden", valeur !== "oui");
+  renderJoueurs();
+  updateClassementInputs();
+}
+
+function surClicJoueur(evenement) {
+  var cible = evenement.target;
+  if (cible.classList && cible.classList.contains("player-name")) {
+    basculerSelection(cible.getAttribute("data-cocher"));
+  }
+}
+
+function surChangementJoueur(evenement) {
+  var cible = evenement.target;
+  if (cible.matches && cible.matches('input[type="checkbox"]')) {
+    basculerSelection(cible.getAttribute("data-cocher"), cible.checked);
+    return;
+  }
+  if (cible.matches && cible.matches("select.teamSelect")) {
+    var nom = cible.getAttribute("data-equipe");
+    equipes[nom] = parseInt(cible.value, 10) || 1;
+    updateClassementInputs();
+  }
+}
+
+function basculerSelection(nom, force) {
+  if (!nom) return;
+  var actif = force === undefined ? selection[nom] !== true : force;
+  if (actif) {
+    selection[nom] = true;
+    if (!equipes[nom]) equipes[nom] = 1;
+  } else {
+    delete selection[nom];
+  }
+  renderJoueurs();
+  updateClassementInputs();
+}
+
+function surChangementClassement(evenement) {
+  var cible = evenement.target;
+  if (cible.matches && cible.matches("select[data-position-equipe]")) {
+    positionsEquipes[cible.getAttribute("data-position-equipe")] = parseInt(cible.value, 10) || 1;
+    return;
+  }
+  if (cible.matches && cible.matches("select[data-position-joueur]")) {
+    positionsJoueurs[cible.getAttribute("data-position-joueur")] = parseInt(cible.value, 10) || 1;
+  }
+}
+
+/* ============================================================
+   JEUX : FORMULAIRE
+============================================================ */
+function onModeChangeNewGame() {
+  var mode = document.getElementById("newGameMode").value;
+  document.getElementById("victoryTypeContainer").classList.toggle("hidden", mode === "coop");
+}
+
+function reinitialiserFormJeu() {
+  jeuEnEdition = null;
+  document.getElementById("newGameName").value = "";
+  document.getElementById("newGameComplexity").value = "2.5";
+  document.getElementById("newGameDuration").value = "45";
+  document.getElementById("newGameMode").value = "competitif";
+  document.getElementById("newGameVictoryType").value = "classement";
+  document.getElementById("newGameVariableDuration").value = "non";
+  document.getElementById("newGameTeamMode").value = "non";
+  document.getElementById("titreFormJeu").textContent = "Ajouter un jeu";
+  document.getElementById("btnEnregistrerJeu").textContent = "Ajouter le jeu";
+  document.getElementById("btnAnnulerJeu").classList.add("hidden");
+  onModeChangeNewGame();
+}
+
+function editerJeu(nom) {
+  var jeu = jeux[nom];
+  if (!jeu) return;
+  jeuEnEdition = nom;
+  document.getElementById("newGameName").value = nom;
+  document.getElementById("newGameComplexity").value = jeu.complexite;
+  document.getElementById("newGameDuration").value = jeu.duree;
+  document.getElementById("newGameMode").value = jeu.mode;
+  document.getElementById("newGameVictoryType").value = jeu.victoire || "classement";
+  document.getElementById("newGameVariableDuration").value = jeu.variable || "non";
+  document.getElementById("newGameTeamMode").value = jeu.modeEquipe || "non";
+  document.getElementById("titreFormJeu").textContent = "Modifier « " + nom + " »";
+  document.getElementById("btnEnregistrerJeu").textContent = "Enregistrer";
+  document.getElementById("btnAnnulerJeu").classList.remove("hidden");
+  onModeChangeNewGame();
+  document.getElementById("newGameName").focus();
+}
+
+function annulerEditionJeu() {
+  reinitialiserFormJeu();
+}
+
+function enregistrerJeu() {
+  var nom = document.getElementById("newGameName").value.trim();
+  var complexite = parseFloat(document.getElementById("newGameComplexity").value);
+  var duree = parseFloat(document.getElementById("newGameDuration").value);
+  var mode = document.getElementById("newGameMode").value;
+  var victoire = document.getElementById("newGameVictoryType").value;
+  var variable = document.getElementById("newGameVariableDuration").value;
+  var modeEquipe = document.getElementById("newGameTeamMode").value;
+
+  if (!nom) { alert("Donne un nom au jeu."); return; }
+  if (!isFinite(complexite) || complexite <= 0) { alert("Complexité invalide (ex. 2.5)."); return; }
+  if (!isFinite(duree) || duree <= 0) { alert("Durée invalide (en minutes)."); return; }
+  if ((!jeuEnEdition || jeuEnEdition !== nom) && jeux[nom]) { alert("Ce jeu existe déjà."); return; }
+
+  if (jeuEnEdition && jeuEnEdition !== nom) delete jeux[jeuEnEdition];
+
+  jeux[nom] = {
+    complexite: complexite,
+    duree: duree,
+    mode: mode,
+    victoire: mode === "coop" ? "binaire" : victoire,
+    variable: variable,
+    modeEquipe: modeEquipe
+  };
+
+  sauverTout();
+  reinitialiserFormJeu();
+  renderAll();
+  selection = {};
+  renderJoueurs();
+  updateClassementInputs();
+  afficherStatut("Jeu enregistré ✓");
+}
+
+function supprimerJeu(nom) {
+  if (!confirm("Supprimer le jeu « " + nom + " » ?")) return;
+  delete jeux[nom];
+  sauverTout();
+  renderAll();
+}
+
+function surClicGestionJeux(evenement) {
+  var cible = evenement.target;
+  if (!cible.getAttribute) return;
+  var aModifier = cible.getAttribute("data-modifier-jeu");
+  var aSupprimer = cible.getAttribute("data-supprimer-jeu");
+  if (aModifier) editerJeu(aModifier);
+  if (aSupprimer) supprimerJeu(aSupprimer);
+}
+
+/* ============================================================
+   JOUEURS : AJOUT / MODIF
+============================================================ */
+function ajouterJoueur() {
+  var champ = document.getElementById("newPlayer");
+  var nom = champ.value.trim();
+  if (!nom) { alert("Écris un nom."); return; }
+  if (joueurs[nom]) { alert("Ce joueur existe déjà."); return; }
+  joueurs[nom] = { score: START_SCORE, debut: null };
+  champ.value = "";
+  sauverTout();
+  renderJoueurs();
+  renderClassement();
+  renderGestionJoueurs();
+}
+
+function supprimerJoueur(nom) {
+  if (!confirm("Supprimer le joueur « " + nom + " » ?")) return;
+  delete joueurs[nom];
+  delete selection[nom];
+  delete equipes[nom];
+  sauverTout();
+  renderJoueurs();
+  renderClassement();
+  renderGestionJoueurs();
+  updateClassementInputs();
+}
+
+function modifierJoueur(nom) {
+  var nouveauNom = prompt("Nom :", nom);
+  if (nouveauNom === null) return;
+  var nomFinal = nouveauNom.trim();
+  if (!nomFinal) { alert("Le nom ne peut pas être vide."); return; }
+  if (nomFinal !== nom && joueurs[nomFinal]) { alert("Ce nom est déjà pris."); return; }
+
+  var scoreSaisi = prompt("Score :", String(Math.round(Number(joueurs[nom].score) || START_SCORE)));
+  if (scoreSaisi === null) return;
+  var score = parseFloat(scoreSaisi);
+  if (!isFinite(score)) { alert("Score invalide."); return; }
+
+  var ancien = joueurs[nom];
+  delete joueurs[nom];
+  joueurs[nomFinal] = { score: score, debut: ancien.debut || null };
+
+  if (selection[nom]) { delete selection[nom]; selection[nomFinal] = true; }
+  if (equipes[nom]) { equipes[nomFinal] = equipes[nom]; delete equipes[nom]; }
+  if (positionsJoueurs[nom] !== undefined) {
+    positionsJoueurs[nomFinal] = positionsJoueurs[nom];
+    delete positionsJoueurs[nom];
+  }
+
+  sauverTout();
+  renderJoueurs();
+  renderClassement();
+  renderGestionJoueurs();
+  updateClassementInputs();
+}
+
+function surClicGestionJoueurs(evenement) {
+  var cible = evenement.target;
+  if (!cible.getAttribute) return;
+  var aModifier = cible.getAttribute("data-modifier-joueur");
+  var aSupprimer = cible.getAttribute("data-supprimer-joueur");
+  if (aModifier) modifierJoueur(aModifier);
+  if (aSupprimer) supprimerJoueur(aSupprimer);
+}
+
+/* ============================================================
    CALCUL ELO
-============================ */
-function calculElo(partie, modeReel, data) {
+============================================================ */
+function scoreDe(nom) {
+  var joueur = joueurs[nom];
+  return joueur && joueur.score !== undefined ? Number(joueur.score) : START_SCORE;
+}
 
-  let K = 40;
+function probabilite(rating, adversaire) {
+  return 1 / (1 + Math.pow(10, (adversaire - rating) / 400));
+}
 
-  // Facteur de difficulté coop
-  let difficultyFactor = (modeReel === "coop")
-    ? parseFloat(document.getElementById("coopDifficulty").value)
-    : 1;
+function borner(delta) {
+  return Math.max(-50, Math.min(50, delta));
+}
 
-  let N = partie.length;
+function multiplicateur(jeu, nombreJoueurs) {
+  var complexite = 1 + ((Number(jeu.complexite) || 2.5) - 2.5) * 0.3;
+  var effectif = 1 + (nombreJoueurs - 2) * 0.1;
+  var base = Number(jeu.duree) || 0;
+  var duree = jeu.variable === "oui" ? base * nombreJoueurs : base;
+  var facteurDuree = duree < 30 ? 0.9 : (duree <= 90 ? 1 : 1.15);
+  return Math.min(2, Math.max(0.6, complexite * effectif * facteurDuree));
+}
 
-  // Vérifier si on est en mode équipe (présence de p.equipe)
-  let isTeam = partie.some(p => p.equipe !== undefined);
-  
-  if (isTeam) {
+function deltasSolo(resultats, jeu, mode, difficulte, soiree) {
+  var nombre = resultats.length;
+  var mult = multiplicateur(jeu, nombre);
+  var facteurDifficulte = mode === "coop" ? difficulte : 1;
+  var deltas = {};
 
-  // Construire les équipes
-  let equipes = {};
-  partie.forEach(p => {
-    if (!equipes[p.equipe]) equipes[p.equipe] = [];
-    equipes[p.equipe].push(p.nom);
-  });
-
-  // Calcul rating moyen par équipe
-  let ratingEquipe = {};
-  Object.entries(equipes).forEach(([team, joueursTeam]) => {
-    let sum = joueursTeam.reduce((a, j) => a + joueurs[j].score, 0);
-    ratingEquipe[team] = sum / joueursTeam.length;
-  });
-
-  // Expected par équipe
-  let expectedEquipe = {};
-  let teams = Object.keys(equipes);
-
-  teams.forEach(t1 => {
-    let exp = 0;
-    teams.forEach(t2 => {
-      if (t1 !== t2) {
-        exp += 1 / (1 + Math.pow(10, (ratingEquipe[t2] - ratingEquipe[t1]) / 400));
-      }
-    });
-    if (teams.length > 1) {
-      exp /= (teams.length - 1);
-    }
-    expectedEquipe[t1] = exp;
-  });
-
-  // Score réel par équipe (en fonction de la position d’équipe)
-  let scoreEquipe = {};
-  teams.forEach(t => {
-    let pos = partie.find(p => p.equipe == t).position;
-    scoreEquipe[t] = (teams.length - pos) / (teams.length - 1);
-  });
-
-  // Multiplicateur M (comme avant)
-  let C = 1 + (data.complexite - 2.5) * 0.3;
-  let J = 1 + (N - 2) * 0.1;
-  let dureeEffective = data.duree;
-  if (data.variable === "oui") {
-    dureeEffective = data.duree * N;
-  }
-  let D = (dureeEffective < 30)
-    ? 0.9
-    : (dureeEffective <= 90 ? 1.0 : 1.15);
-  let M = Math.max(0.6, Math.min(2.0, C * J * D));
-
-  // Appliquer variation à chaque joueur
-  partie.forEach(p => {
-    let delta = K * M * difficultyFactor * (scoreEquipe[p.equipe] - expectedEquipe[p.equipe]);
-    delta = Math.max(-50, Math.min(50, delta));
-    joueurs[p.nom].score += delta;
-  });
-
-  localStorage.setItem("joueurs", JSON.stringify(joueurs));
-  return; // on sort, on ne fait pas le reste
-  }
-
-  // Complexité du jeu
-  let C = 1 + (data.complexite - 2.5) * 0.3;
-
-  // Nombre de joueurs
-  let J = 1 + (N - 2) * 0.1;
-
-  // Durée effective (variable ou non)
-  let dureeEffective = data.duree;
-
-  if (data.variable === "oui") {
-    dureeEffective = data.duree * N;
-  }
-
-  // Catégorie de durée
-  let D = (dureeEffective < 30)
-    ? 0.9
-    : (dureeEffective <= 90 ? 1.0 : 1.15);
-
-  // Multiplicateur final
-  let M = Math.max(0.6, Math.min(2.0, C * J * D));
-
-  // Gestion du plafond coop par soirée
-  let dateSoiree = new Date().toDateString();
-  if (!coopGainSoiree[dateSoiree]) coopGainSoiree[dateSoiree] = {};
-
-  if (!data) return;
-
-  partie.forEach(j => {
-
-    // Score réel selon type de victoire
-    let score = (j.scoreFixe !== undefined)
-      ? j.scoreFixe
-      : (partie.length === 1
-        ? 1
-        : (partie.length - j.position) / (partie.length - 1));
-
-    // Score attendu
-    let expected = 0;
-    partie.forEach(other => {
-      if (other.nom !== j.nom) {
-        expected += 1 / (1 + Math.pow(10,
-          (joueurs[other.nom].score - joueurs[j.nom].score) / 400
-        ));
-      }
-    });
-    if (partie.length > 1) {
-      expected /= (partie.length - 1);
+  resultats.forEach(function (resultat) {
+    var rating = scoreDe(resultat.nom);
+    var score;
+    if (resultat.scoreFixe !== undefined) {
+      score = resultat.scoreFixe;
+    } else if (nombre === 1) {
+      score = 1;
+    } else {
+      score = (nombre - resultat.position) / (nombre - 1);
     }
 
-    // Variation Elo
-    let delta = K * M * difficultyFactor * (score - expected);
+    var attendu = 0;
+    resultats.forEach(function (autre) {
+      if (autre.nom !== resultat.nom) attendu += probabilite(rating, scoreDe(autre.nom));
+    });
+    if (nombre > 1) attendu = attendu / (nombre - 1);
 
-    // Gestion spéciale coop
-    if (modeReel === "coop") {
+    var delta = K_FACTOR * mult * facteurDifficulte * (score - attendu);
 
-      if (!coopGainSoiree[dateSoiree][j.nom]) {
-        coopGainSoiree[dateSoiree][j.nom] = 0;
-      }
-
-      let potentiel = delta * 0.5;
-      let restant = 20 - coopGainSoiree[dateSoiree][j.nom];
-      let applique = Math.min(restant, Math.max(-20, potentiel));
-
-      coopGainSoiree[dateSoiree][j.nom] += applique;
+    if (mode === "coop") {
+      if (!coopGains[soiree]) coopGains[soiree] = {};
+      var cumul = coopGains[soiree][resultat.nom] || 0;
+      var applique = Math.min(COOP_CAP - cumul, Math.max(-COOP_CAP, delta * 0.5));
+      coopGains[soiree][resultat.nom] = cumul + applique;
       delta = applique;
     }
 
-    // Clamp final
-    delta = Math.max(-50, Math.min(50, delta));
-
-    // Application du score
-    joueurs[j.nom].score += delta;
+    deltas[resultat.nom] = borner(delta);
   });
 
-  localStorage.setItem("joueurs", JSON.stringify(joueurs));
+  return deltas;
 }
 
-/* ============================
-   IMPORT / EXPORT
-============================ */
+function deltasEquipe(resultats, jeu, difficulte) {
+  var mult = multiplicateur(jeu, resultats.length);
+  var groupes = {};
+
+  resultats.forEach(function (resultat) {
+    var cle = String(resultat.equipe);
+    if (!groupes[cle]) groupes[cle] = [];
+    groupes[cle].push(resultat);
+  });
+
+  var equipesUtilisees = Object.keys(groupes);
+  var rating = {};
+  equipesUtilisees.forEach(function (equipe) {
+    var total = 0;
+    groupes[equipe].forEach(function (resultat) { total += scoreDe(resultat.nom); });
+    rating[equipe] = total / groupes[equipe].length;
+  });
+
+  function positionDe(equipe) {
+    var valeur = parseInt(groupes[equipe][0].position, 10);
+    return isFinite(valeur) ? valeur : 1;
+  }
+
+  function resultatDe(equipe) {
+    if (equipesUtilisees.length === 1) return 1;
+    var points = 0;
+    equipesUtilisees.forEach(function (autre) {
+      if (autre === equipe) return;
+      var maPosition = positionDe(equipe);
+      var saPosition = positionDe(autre);
+      points += maPosition < saPosition ? 1 : (maPosition === saPosition ? 0.5 : 0);
+    });
+    return points / (equipesUtilisees.length - 1);
+  }
+
+  var deltas = {};
+  equipesUtilisees.forEach(function (equipe) {
+    var attendu = 0;
+    equipesUtilisees.forEach(function (autre) {
+      if (autre !== equipe) attendu += probabilite(rating[equipe], rating[autre]);
+    });
+    if (equipesUtilisees.length > 1) attendu = attendu / (equipesUtilisees.length - 1);
+
+    var delta = borner(K_FACTOR * mult * difficulte * (resultatDe(equipe) - attendu));
+    groupes[equipe].forEach(function (resultat) { deltas[resultat.nom] = delta; });
+  });
+
+  return deltas;
+}
+
+function regressionVersBase() {
+  var sessions = {};
+
+  historique.forEach(function (partie) {
+    var moment = new Date(partie.date).getTime();
+    (partie.joueurs || []).forEach(function (nom) {
+      var joueur = joueurs[nom];
+      if (!joueur || !joueur.debut) return;
+      if (moment < new Date(joueur.debut).getTime()) return;
+      if (!sessions[nom]) sessions[nom] = {};
+      sessions[nom][partie.id || moment] = true;
+    });
+  });
+
+  var actifs = Object.keys(joueurs).filter(function (nom) { return joueurs[nom].debut; });
+  if (actifs.length === 0) return;
+
+  var total = 0;
+  actifs.forEach(function (nom) {
+    total += sessions[nom] ? Object.keys(sessions[nom]).length : 0;
+  });
+  var moyenne = total / actifs.length;
+  if (!moyenne) return;
+
+  actifs.forEach(function (nom) {
+    var nombre = sessions[nom] ? Object.keys(sessions[nom]).length : 0;
+    var ratio = nombre / moyenne;
+    var score = Number(joueurs[nom].score) || START_SCORE;
+    if (ratio < 0.5 || (ratio > 1.5 && score < START_SCORE)) {
+      joueurs[nom].score = score + (START_SCORE - score) * REGRESSION_RATE;
+    }
+  });
+}
+
+/* ============================================================
+   VALIDATION D'UNE PARTIE
+============================================================ */
+function construireResultats(choisis, enEquipe) {
+  var resultats = [];
+
+  if (enEquipe) {
+    var parEquipe = {};
+    var champsEquipe = document.querySelectorAll("select[data-position-equipe]");
+    Array.prototype.forEach.call(champsEquipe, function (champ) {
+      parEquipe[champ.getAttribute("data-position-equipe")] = parseInt(champ.value, 10) || 1;
+    });
+    choisis.forEach(function (nom) {
+      var equipe = parseInt(equipes[nom], 10) || 1;
+      resultats.push({
+        nom: nom,
+        equipe: equipe,
+        position: parEquipe[String(equipe)] || equipe
+      });
+    });
+    return resultats;
+  }
+
+  if (modeReel() === "coop") {
+    var champResultat = document.getElementById("resultatCoop");
+    var valeur = champResultat ? parseInt(champResultat.value, 10) || 0 : 0;
+    choisis.forEach(function (nom) { resultats.push({ nom: nom, scoreFixe: valeur }); });
+    return resultats;
+  }
+
+  if ((jeuActif() && jeuActif().victoire || "classement") === "binaire") {
+    var gagnant = document.querySelector('input[name="gagnant"]:checked');
+    if (!gagnant) return null;
+    choisis.forEach(function (nom) {
+      resultats.push({ nom: nom, scoreFixe: nom === gagnant.value ? 1 : 0 });
+    });
+    return resultats;
+  }
+
+  var champsPosition = document.querySelectorAll("select[data-position-joueur]");
+  Array.prototype.forEach.call(champsPosition, function (champ) {
+    resultats.push({
+      nom: champ.getAttribute("data-position-joueur"),
+      position: parseInt(champ.value, 10) || 1
+    });
+  });
+  return resultats;
+}
+
+function validerPartie() {
+  var jeu = jeuActif();
+  if (!jeu) { alert("Choisis d'abord un jeu."); return; }
+
+  var choisis = joueursChoisis();
+  if (choisis.length === 0) { alert("Coche au moins un joueur."); return; }
+
+  var enEquipe = equipeActive(jeu) === "oui";
+  if (enEquipe) {
+    var utilisees = {};
+    choisis.forEach(function (nom) { utilisees[parseInt(equipes[nom], 10) || 1] = true; });
+    if (Object.keys(utilisees).length < 2) {
+      alert("Mets les joueurs dans au moins deux équipes.");
+      return;
+    }
+  }
+
+  var resultats = construireResultats(choisis, enEquipe);
+  if (resultats === null) { alert("Choisis un gagnant."); return; }
+
+  enregistrerPartie(resultats, jeu, enEquipe);
+}
+
+function enregistrerPartie(resultats, jeu, enEquipe) {
+  var mode = modeReel();
+  var difficulte = 1;
+  if (mode === "coop") {
+    var champDifficulte = document.getElementById("coopDifficulty");
+    difficulte = champDifficulte ? parseFloat(champDifficulte.value) || 1 : 1;
+  }
+
+  var aujourdhui = new Date().toISOString().slice(0, 10);
+  var soiree = new Date().toDateString();
+
+  var deltas = enEquipe
+    ? deltasEquipe(resultats, jeu, mode === "coop" ? difficulte : 1)
+    : deltasSolo(resultats, jeu, mode, difficulte, soiree);
+
+  resultats.forEach(function (resultat) {
+    var joueur = joueurs[resultat.nom];
+    if (!joueur) return;
+    if (!joueur.debut) joueur.debut = aujourdhui;
+    joueur.score = (joueur.score === undefined ? START_SCORE : Number(joueur.score)) + (deltas[resultat.nom] || 0);
+  });
+
+  historique.push({
+    id: Date.now(),
+    date: aujourdhui,
+    jeu: nomJeuActif(),
+    mode: mode,
+    joueurs: resultats.map(function (resultat) { return resultat.nom; }),
+    resultat: resultats
+  });
+
+  regressionVersBase();
+  sauverTout();
+
+  var gains = resultats.map(function (resultat) {
+    var delta = Math.round(deltas[resultat.nom] || 0);
+    return resultat.nom + " " + (delta >= 0 ? "+" : "") + delta;
+  }).join(" · ");
+
+  selection = {};
+  equipes = {};
+  positionsJoueurs = {};
+  positionsEquipes = {};
+
+  renderJoueurs();
+  updateClassementInputs();
+  renderClassement();
+  renderHistorique();
+  afficherStatut("Partie enregistrée ✓  " + gains);
+}
+
+/* ============================================================
+   IMPORT / EXPORT / RESET
+============================================================ */
 function exporterDonnees() {
-  const data = { joueurs, jeux, historique };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "classement_backup.json";
-  a.click();
-
+  var contenu = JSON.stringify({ jeux: jeux, joueurs: joueurs, historique: historique }, null, 2);
+  var blob = new Blob([contenu], { type: "application/json" });
+  var url = URL.createObjectURL(blob);
+  var lien = document.createElement("a");
+  lien.href = url;
+  lien.download = "classement_backup.json";
+  lien.click();
   URL.revokeObjectURL(url);
 }
 
-function importerDonnees() {
-  const fileInput = document.getElementById("importFile");
-  const file = fileInput.files[0];
-  if (!file) return;
+function importerDonnees(evenement) {
+  var champ = evenement.target;
+  var fichier = champ.files && champ.files[0];
+  if (!fichier) return;
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
+  var lecteur = new FileReader();
+  lecteur.onload = function (charge) {
     try {
-      const data = JSON.parse(e.target.result);
-
-      if (data.joueurs && data.jeux && data.historique) {
-
-        joueurs = data.joueurs;
-        jeux = data.jeux;
-        historique = data.historique;
-
-        localStorage.setItem("joueurs", JSON.stringify(joueurs));
-        localStorage.setItem("jeux", JSON.stringify(jeux));
-        localStorage.setItem("historique", JSON.stringify(historique));
-
-        afficherClassement();
-        afficherJeux();
-        afficherJoueurs();
-        afficherHistorique();
-        afficherGestionJeux();
-        afficherGestionJoueurs();
-
-        alert("Import réussi !");
-      } else {
-        alert("Fichier invalide.");
+      var donnees = JSON.parse(charge.target.result);
+      if (!donnees.joueurs || !donnees.jeux || !Array.isArray(donnees.historique)) {
+        throw new Error("format");
       }
-    } catch (err) {
-      alert("Erreur lors de l'import.");
+      jeux = donnees.jeux;
+      joueurs = donnees.joueurs;
+      historique = donnees.historique;
+      selection = {};
+      equipes = {};
+      positionsJoueurs = {};
+      positionsEquipes = {};
+      sauverTout();
+      renderAll();
+      afficherStatut("Import réussi ✓");
+    } catch (erreur) {
+      alert("Fichier invalide.");
     }
+    champ.value = "";
   };
-
-  reader.readAsText(file);
+  lecteur.readAsText(fichier);
 }
 
 function reset() {
-  localStorage.removeItem("joueurs");
-  localStorage.removeItem("jeux");
-  localStorage.removeItem("historique");
-  location.reload();
+  if (!confirm("Effacer tous les joueurs, tous les jeux et tout l'historique ?")) return;
+
+  jeux = {};
+  joueurs = {};
+  historique = [];
+  coopGains = {};
+  selection = {};
+  equipes = {};
+  positionsJoueurs = {};
+  positionsEquipes = {};
+  jeuEnEdition = null;
+
+  try {
+    localStorage.removeItem("jeux");
+    localStorage.removeItem("joueurs");
+    localStorage.removeItem("historique");
+    localStorage.removeItem("backup_auto");
+  } catch (erreur) {
+    /* stockage indisponible */
+  }
+
+  reinitialiserFormJeu();
+  renderAll();
+  afficherStatut("Tout a été effacé.");
 }
 
-window.onload = function() {
-  // 🔥 Récupération backup auto si dispo
-  let backup = localStorage.getItem("backup_auto");
-  if (backup) {
-    try {
-      let data = JSON.parse(backup);
-      if (data.joueurs && data.jeux && data.historique) {
-        joueurs = data.joueurs;
-        jeux = data.jeux;
-        historique = data.historique;
+/* ============================================================
+   DÉMARRAGE
+============================================================ */
+function init() {
+  var liste = document.getElementById("joueursList");
+  liste.addEventListener("click", surClicJoueur);
+  liste.addEventListener("change", surChangementJoueur);
+  document.getElementById("classementInputs").addEventListener("change", surChangementClassement);
+  document.getElementById("gestionJoueurs").addEventListener("click", surClicGestionJoueurs);
+  document.getElementById("gestionJeux").addEventListener("click", surClicGestionJeux);
 
-        localStorage.setItem("joueurs", JSON.stringify(joueurs));
-        localStorage.setItem("jeux", JSON.stringify(jeux));
-        localStorage.setItem("historique", JSON.stringify(historique));
-      }
-    } catch(e) {}
-  }
-  afficherJeux();
-  afficherJoueurs();
+  renderAll();
   onModeChangeNewGame();
-  afficherClassement();
-  afficherHistorique();
-  afficherGestionJeux();
-  afficherGestionJoueurs();
-};
+}
 
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
 </script>
 
 </body>
